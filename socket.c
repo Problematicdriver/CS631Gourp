@@ -3,9 +3,47 @@
 
 struct addrinfo hints, *result;
 
-char* _hostname;
-char* _port;
+char* hostname;
+char* port;
 bool d_FLAG;
+
+int
+allocate_fd(struct addrinfo *p)
+{
+    char host[256];
+    int sock_fd;
+
+    if (getnameinfo(p->ai_addr,
+                p->ai_addr->sa_len,
+                host, 256,
+                NULL, 0, 0)) {
+        perror("getnameinfo()");
+        exit(1);
+    }
+    printf("host name: %s\n", host);
+
+    if ((sock_fd = socket(p->ai_family, p->ai_socktype, 0)) < 0) {
+        perror("socket");
+        exit(1);
+    }
+
+    if (bind(sock_fd, p->ai_addr, p->ai_addrlen) != 0) {
+        perror("bind()");
+        exit(1);
+    }
+    if (getsockname(sock_fd, p->ai_addr, &p->ai_addrlen)) {
+        perror("getting socket name");
+        exit(EXIT_FAILURE);
+    }
+    if (listen(sock_fd, 128) != 0) {
+        perror("listen()");
+        exit(1);
+    }
+    struct sockaddr_in *result_addr =  (struct sockaddr_in *)p->ai_addr;
+    printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
+    printf("Waiting for connection...\n");
+    return sock_fd;
+}
 
 int
 create_socket()
@@ -13,38 +51,24 @@ create_socket()
     int sock_fd;
 
     memset(&hints, 0, sizeof(struct addrinfo));
-    
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags = AI_PASSIVE;    
     hints.ai_socktype = SOCK_STREAM;
 
-    char *hostname, *port, host[256];
-    hostname = _hostname;
-    port = _port;
+    // char host[256], server[256];
+    
+    printf("looking for %s, port %s\n", hostname, port);
+    
     int s = getaddrinfo(hostname, port, &hints, &result);
+    
     if (s != 0) {
         if (d_FLAG) {
-            (void)fprintf(stdout, "getaddrinfo: %s\n", gai_strerror(s));
+            (void)fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
         }
         return 1;
     }
-    if ((sock_fd = socket(AF_INET6, SOCK_STREAM, 0) < 0)) {
-        if (d_FLAG) {
-            (void)fprintf(stdout, "socket()");
-        }
-        return 2;
-    }
-    if (getnameinfo(result->ai_addr, result->ai_addr->sa_len, host, 256, NULL, 0, 0)) {
-        (void)fprintf(stdout, "getnameinfo()");
-        return 3;
-    }
-    printf("host found: %s\n", host);
-    if (bind(sock_fd, result->ai_addr, result->ai_addrlen) != 0) {
-        (void)fprintf(stdout, "bind()");
-        return 5;
-    }
-    if (listen(sock_fd, BACKLOG) != 0) {
-        (void)fprintf(stdout, "listen()");
-        return 6;
-    }
+   
+    sock_fd = allocate_fd(result);
 
     /* Loop for listening client socket connection*/
     char buffer[1024];

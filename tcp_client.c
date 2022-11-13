@@ -15,46 +15,19 @@ typedef struct _host_info {
 
 struct addrinfo hints, *p0;
 
-void send_request(host_info *info) {
-    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    // Re-use address is a little overkill here because we are making a
-    // Listen only server and we don’t expect spoofed requests.
-    int optval = 1;
-    int retval = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &optval,
-    sizeof(optval));
-    if(retval == -1) {
-        perror("setsockopt");
-        exit(1);
-    }
-    // Connect using code snippet
-    struct addrinfo current, *result;
-    memset(&current, 0, sizeof(struct addrinfo));
-    current.ai_family = AF_INET;
-    current.ai_socktype = SOCK_STREAM;
-    getaddrinfo(info->hostname, info->port, &current, &result);
-    connect(sock_fd, result->ai_addr, result->ai_addrlen);
-
-    // Send the get request
-    // Open so you can use getline
-    FILE *sock_file = fdopen(sock_fd, "r+");
-    setvbuf(sock_file, NULL, _IONBF, 0);
-    ret = handle_okay(sock_file);
-    fclose(sock_file);
-    close(sock_fd);
-}
-
 int
 main(int argc, char **argv)
 {
-    if (argc != 3) {
+    if (argc < 2) {
         perror("Usage: ...");
+        exit(1);
     }
     
     /* establish connection */
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET6;
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    
+
     int result;
     result = getaddrinfo(argv[1], argv[2], &hints, &p0);
     
@@ -75,14 +48,18 @@ main(int argc, char **argv)
             perror("socket()");
             continue;
         }
+
         (void)getnameinfo(p->ai_addr, p->ai_addrlen, host, sizeof(host),
                 NULL, 0, NI_NUMERICHOST);
+        
         (void)printf("connecting to %s ...\n", host);
+        
         if (connect(socketfd, p->ai_addr, p->ai_addrlen) < 0) {
             (void)printf("connection to %s failed\n", host);
             close(socketfd);
             continue;
         }
+        (void)printf("connection to %s successful\n", host);
     }
     /* by now socketfd should have been connected */
     freeaddrinfo(p0);

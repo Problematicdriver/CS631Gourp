@@ -11,8 +11,12 @@
 #include <unistd.h>
 
 int
-main()
+main(int argc, char **argv)
 {
+    if (argc != 2) {
+        exit(1);
+    }
+
     struct addrinfo hints, *result;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET6;
@@ -21,7 +25,7 @@ main()
     
     char host[256];
 
-    int s = getaddrinfo(NULL, "1234", &hints, &result);
+    int s = getaddrinfo(argv[1], "8080", &hints, &result);
     if (s != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
         exit(1);
@@ -40,6 +44,11 @@ main()
     if (bind(sock_fd, result->ai_addr, result->ai_addrlen) != 0) {
         perror("bind()");
         exit(1);
+    }
+    
+    if (getsockname(sock_fd, result->ai_addr, &result->ai_addrlen)) {
+        perror("getting socket name");
+        exit(EXIT_FAILURE);
     }
     if (listen(sock_fd, 10) != 0) {
         perror("listen()");

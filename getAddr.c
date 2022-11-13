@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
+#include <netinet/in.h>
 
 struct addrinfo hints, *infoptr;
 
@@ -14,8 +15,8 @@ main(int argc, char **argv)
         perror("argc");
     }
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET6;
-    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags = AI_PASSIVE;
 
     int result = getaddrinfo(
             argv[1],
@@ -31,9 +32,10 @@ main(int argc, char **argv)
         getnameinfo(
                 p->ai_addr,
                 p->ai_addrlen,
-                host, sizeof(host), server, 256,
+                host, sizeof(host), server, sizeof(server),
                 NI_NUMERICHOST);
         puts(host);
-        // puts(server);
+        struct sockaddr_in *result_addr =  (struct sockaddr_in *)p->ai_addr;
+        // printf("port %d\n", ntohs(result_addr->sin_port));
     }
 }
