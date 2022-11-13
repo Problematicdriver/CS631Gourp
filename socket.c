@@ -17,27 +17,27 @@ allocate_fd(struct addrinfo *p)
                 p->ai_addr->sa_len,
                 host, 256,
                 NULL, 0, 0)) {
-        perror("getnameinfo()");
-        exit(1);
+        if (d_FLAG) fprintf(stderr, "getnameinfo()");
+        return -1;
     }
-    printf("host name: %s\n", host);
+    printf("host found: %s\n", host);
 
     if ((sock_fd = socket(p->ai_family, p->ai_socktype, 0)) < 0) {
-        perror("socket");
-        exit(1);
+        if (d_FLAG) fprintf(stderr, "socket()");
+        return -1;
     }
 
     if (bind(sock_fd, p->ai_addr, p->ai_addrlen) != 0) {
-        perror("bind()");
-        exit(1);
+        if (d_FLAG) fprintf(stderr, "bind()");
+        return -1;
     }
     if (getsockname(sock_fd, p->ai_addr, &p->ai_addrlen)) {
-        perror("getting socket name");
-        exit(EXIT_FAILURE);
+        if (d_FLAG) fprintf(stderr, "getsockname()");
+        return -1;
     }
     if (listen(sock_fd, 128) != 0) {
-        perror("listen()");
-        exit(1);
+        if (d_FLAG) fprintf(stderr, "listen()");
+        return -1;
     }
     struct sockaddr_in *result_addr =  (struct sockaddr_in *)p->ai_addr;
     printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
@@ -57,7 +57,7 @@ create_socket()
 
     // char host[256], server[256];
     
-    printf("looking for %s, port %s\n", hostname, port);
+    printf("looking for %s, port %s ...\n", hostname, port);
     
     int s = getaddrinfo(hostname, port, &hints, &result);
     
@@ -68,7 +68,10 @@ create_socket()
         return 1;
     }
    
-    sock_fd = allocate_fd(result);
+    if ((sock_fd = allocate_fd(result)) < 0) {
+        fprintf(stderr, "allocate_fd");
+        return 1;
+    }
 
     /* Loop for listening client socket connection*/
     char buffer[1024];
