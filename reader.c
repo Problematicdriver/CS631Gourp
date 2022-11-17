@@ -13,15 +13,20 @@ void handle_socket(int server_fd) {
         if (client_fd < 0) {
             continue;
         }
-        // printf("Connection accepted from %s:%d\n\n", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
-        printf("Connection accepted");
+        //printf("Connection accepted from %s:%d\n\n", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
+        //printf("Connection accepted");
         
         /* Fork one process for one client request */
         if ((childpid = fork()) == 0) {
             close(server_fd);
             char *s;
+            // Reader
             s = reader(client_fd);
-            printf("[s]%s\n", s);
+            printf("[reader return]%s\n\n", s);
+
+            // Writer
+            char response[] = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
+            for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
 
             /* Close the client socket connection */
             close(client_fd);
@@ -71,7 +76,6 @@ reader(int fd) {
     char* lines[1024] = {NULL};
     char* line = NULL;
     line = strtok(buf, "\r\n");
-    printf("[Inside reader]%s\n",line);
     /* Read every line into *lines[1024] */
     while (line != NULL) {
         lines[n] = strdup(line);
