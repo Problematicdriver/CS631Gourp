@@ -1,7 +1,9 @@
 #include "socket.h"
+
+#define TIMEOUT 3
 #define BACKLOG 128
 
-struct addrinfo hints, *result;
+struct addrinfo hints, *result, *p;
 
 char* hostname;
 char* port;
@@ -45,10 +47,12 @@ allocate_fd(struct addrinfo *p)
     return sock_fd;
 }
 
+
+
 int
-create_socket()
-{
-    int sock_fd;
+socket_select()
+{   
+    int n_socks, num_ready, i;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -68,37 +72,74 @@ create_socket()
         return 1;
     }
    
-    if ((sock_fd = allocate_fd(result)) < 0) {
-        fprintf(stderr, "allocate_fd");
-        return 1;
-    }
+    for (p = result, n_socks = 0; p != NULL; p = p->ai_next, ++n_socks);
+    int sock_fds[n_socks];
 
-    /* Loop for listening client socket connection*/
-    char buffer[1024];
-    for (;;) {
-        struct sockaddr_in cliAddr;
-        socklen_t cliAddr_size;
-        /* Recieve client request */
-        int client_fd = accept(sock_fd, (struct sockaddr*)&cliAddr, &cliAddr_size);
-        if (client_fd < 0) {
-            printf("One Request Passed!");
-            continue;
-        }
-        printf("Connection accepted from %s:%d\n\n", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
-
-        /* Fork one process for one client request */
-        int childpid;
-        if ((childpid = fork()) == 0) {
-            close(sock_fd);
-            /* Handle the request/Send the server response */
-            char response[] = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
-            for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
-            
-            recv(client_fd, buffer, 1024, 0);
-            printf("PID[%d] body:\n\n%s\n",getpid(), buffer);
-            /* Close the client socket connection */
-            close(client_fd);
+    for (p = result, n_socks = 0; p != NULL; p = p->ai_next, ++n_socks) {
+        if ((sock_fds[n_socks] = allocate_fd(result)) < 0) {
+            fprintf(stderr, "allocate_fd");
+            return 1;
         }
     }
+
+    while (1) {
+        fd_set readfds;
+        struct timeval timeout; 
+        
+        FD_ZERO(&readfds);
+        
+        for (i = 0; i < n_socks; i++) {
+            FD_SET(sock_fds[i], &readfds);
+        }
+        
+        timeout.tv_sec = TIMEOUT;
+        timeout.tv_usec =  0;
+
+        num_ready = select(FD_SETSIZE, &readfds, NULL, NULL, &timeout);
+
+        if (num_ready < 0) {
+            fprintf(stderr, "allocate_fd");
+            return 1;
+        } else if (num_ready == 0) {
+            /* Time out */
+        } else {
+            for (i = 0; i < n_socks; i++) {
+                if (FD_ISSET(sock_fds[i], &readfds)) {
+                    /* reader function being called here instead of sleep */
+                    sleep(5);
+                }
+            }
+        }
+    }
+
     return 0;
+    
+    // /* Loop for listening client socket connection*/
+    // char buffer[1024];
+    // for (;;) {
+    //     struct sockaddr_in cliAddr;
+    //     socklen_t cliAddr_size;
+    //     /* Recieve client request */
+    //     int client_fd = accept(sock_fd, (struct sockaddr*)&cliAddr, &cliAddr_size);
+    //     if (client_fd < 0) {
+    //         printf("One Request Passed!");
+    //         continue;
+    //     }
+    //     printf("Connection accepted from %s:%d\n\n", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
+
+    //     /* Fork one process for one client request */
+    //     int childpid;
+    //     if ((childpid = fork()) == 0) {
+    //         close(sock_fd);
+    //         /* Handle the request/Send the server response */
+    //         char response[] = "HTTP/1.0 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
+    //         for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
+            
+    //         recv(client_fd, buffer, 1024, 0);
+    //         printf("PID[%d] body:\n\n%s\n",getpid(), buffer);
+    //         /* Close the client socket connection */
+    //         close(client_fd);
+    //     }
+    // }
+    // return 0;
 }

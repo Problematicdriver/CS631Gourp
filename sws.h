@@ -22,8 +22,8 @@ extern bool i_FLAG;
 extern bool l_FLAG;
 extern bool p_FLAG;
 
-extern char *hostname;
-extern char *port;
+extern char *_hostname;
+extern char *_port;
 
 extern int _logFD;
 

@@ -5,6 +5,7 @@
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <arpa/inet.h>
 
 #include <netdb.h>
 #include <errno.h>
@@ -16,6 +17,9 @@
 #include "sws.h"
 
 int
-create_socket();
+allocate_fd(struct addrinfo *p);
+
+int
+socket_select();
 
 #endif
