@@ -1,4 +1,5 @@
 #include "socket.h"
+#include "reader.h"
 
 #define TIMEOUT 3
 #define BACKLOG 128
@@ -106,7 +107,7 @@ socket_select()
             for (i = 0; i < n_socks; i++) {
                 if (FD_ISSET(sock_fds[i], &readfds)) {
                     /* reader function being called here instead of sleep */
-                    sleep(5);
+                    handle_socket(sock_fds[i]);
                 }
             }
         }

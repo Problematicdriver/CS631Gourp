@@ -11,6 +11,7 @@
 
 #define BUFSIZE 1024
 
+void handle_socket(int server_fd);
 bool checkProtocol(char* protocol);
 bool checkMethod(char* method);
 char* checkPath(char* path);
