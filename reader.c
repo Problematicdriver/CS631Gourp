@@ -72,16 +72,21 @@ reader(int fd) {
     int index;
 
     recv(fd, buf, BUFSIZE, 0);
-
+    int n = 0;
+    char* lines[1024] = {NULL};
     char* line = NULL;
     line = strtok(buf, "\r\n");
-
-    printf("Request:\n");
-
-    bool firstLine = true;
+    /* Read every line into *lines[1024] */
     while (line != NULL) {
-        printf("%s\n", line);
-        if (firstLine) {
+        lines[n] = strdup(line);
+        n++;
+        line = strtok(NULL, "\r\n");
+    }
+    n = 0;
+    while (lines[n] != NULL) {
+        line = lines[n];
+        printf("[%d]%s\n",n+1, line);
+        if (n == 0) {
             /* First line */
             printf("%s\n", line);
             // char *method, *part, *protocol
@@ -123,7 +128,6 @@ reader(int fd) {
 
         }
         line = strtok(NULL, "\r\n");
-        firstLine = false;
     }
     return "CHANGE";
 }
