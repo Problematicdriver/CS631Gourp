@@ -84,7 +84,7 @@ reader(int fd) {
         printf("[%d]%s\n",n+1, line);
         if (n == 0) {
             /* First line */
-            printf("%s\n", line);
+            printf("[First Line]\n");
             // char *method, *part, *protocol
             part = strtok(line, " ");
             index = 0;
@@ -98,7 +98,7 @@ reader(int fd) {
                     protocol = strdup(part);
                 }
                 index++;
-                printf("[%d]%s\n",index, part);
+                printf("\t[%d]%s\n",index, part);
                 part = strtok(NULL, " ");
             }
             
