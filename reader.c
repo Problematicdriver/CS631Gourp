@@ -19,15 +19,10 @@ void handle_socket(int server_fd) {
         /* Fork one process for one client request */
         if ((childpid = fork()) == 0) {
             close(server_fd);
-            /* Send the server response */
-            // char response[] = "HTTP/1.0 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
-            // for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
-            /* Handle client request */
-            // recv(client_fd, buffer, 1024, 0);
             char *s;
-            s = reader(server_fd);
-            printf("[s]%s", s);
-            // printf("PID[%d] body:\n\n%s\n",getpid(), buf);
+            s = reader(client_fd);
+            printf("[s]%s\n", s);
+
             /* Close the client socket connection */
             close(client_fd);
             exit(1);
@@ -76,6 +71,7 @@ reader(int fd) {
     char* lines[1024] = {NULL};
     char* line = NULL;
     line = strtok(buf, "\r\n");
+    printf("[Inside reader]%s\n",line);
     /* Read every line into *lines[1024] */
     while (line != NULL) {
         lines[n] = strdup(line);
@@ -125,9 +121,9 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than First line */
-
         }
         line = strtok(NULL, "\r\n");
+        n++;
     }
     return "CHANGE";
 }
