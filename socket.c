@@ -76,7 +76,7 @@ socket_select()
     int sock_fds[n_socks];
 
     for (p = result, n_socks = 0; p != NULL; p = p->ai_next, ++n_socks) {
-        if ((sock_fds[n_socks] = allocate_fd(result)) < 0) {
+        if ((sock_fds[n_socks] = allocate_fd(p)) < 0) {
             fprintf(stderr, "allocate_fd");
             return 1;
         }
