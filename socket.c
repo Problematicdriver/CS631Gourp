@@ -19,26 +19,26 @@ allocate_fd(struct addrinfo *p)
                 p->ai_addr->sa_len,
                 host, 256,
                 NULL, 0, 0)) {
-        if (d_FLAG) fprintf(stderr, "getnameinfo()");
+        if (d_FLAG) fprintf(stderr, "getnameinfo()\n");
         return -1;
     }
     printf("host found: %s\n", host);
 
     if ((sock_fd = socket(p->ai_family, p->ai_socktype, 0)) < 0) {
-        if (d_FLAG) fprintf(stderr, "socket()");
+        if (d_FLAG) fprintf(stderr, "socket()\n");
         return -1;
     }
 
     if (bind(sock_fd, p->ai_addr, p->ai_addrlen) != 0) {
-        if (d_FLAG) fprintf(stderr, "bind()");
+        if (d_FLAG) fprintf(stderr, "bind(), %s\n", strerror(errno));
         return -1;
     }
     if (getsockname(sock_fd, p->ai_addr, &p->ai_addrlen)) {
-        if (d_FLAG) fprintf(stderr, "getsockname()");
+        if (d_FLAG) fprintf(stderr, "getsockname()\n");
         return -1;
     }
     if (listen(sock_fd, 128) != 0) {
-        if (d_FLAG) fprintf(stderr, "listen()");
+        if (d_FLAG) fprintf(stderr, "listen()\n");
         return -1;
     }
     struct sockaddr_in *result_addr =  (struct sockaddr_in *)p->ai_addr;

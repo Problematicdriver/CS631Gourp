@@ -2,7 +2,6 @@
 
 void handle_socket(int server_fd) {
     /* Buffer for storing client request */
-    char *s;
     int client_fd, childpid;
     for (;;) {
         // struct sockaddr_in cliAddr;
@@ -25,10 +24,10 @@ void handle_socket(int server_fd) {
             // for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
             /* Handle client request */
             // recv(client_fd, buffer, 1024, 0);
-
+            char *s;
             s = reader(server_fd);
-            
-            printf("PID[%d] body:\n\n%s\n",getpid(), buffer);
+            printf("[s]%s", s);
+            // printf("PID[%d] body:\n\n%s\n",getpid(), buf);
             /* Close the client socket connection */
             close(client_fd);
             exit(1);
@@ -51,15 +50,16 @@ bool checkMethod(char* method) {
 }
 
 char* checkPath(char* path) {
-    char* real;
-    char* docroot;
-    docroot = realpath(".");
-    real = realpath(path);
-    if (strncmp(docroot, real, strlen(docroot)) == 0) {
-        return real;
-    } else {
-        return docroot;
-    }
+    // char* real;
+    // char* docroot;
+    // docroot = realpath(".");
+    // real = realpath(path);
+    // if (strncmp(docroot, real, strlen(docroot)) == 0) {
+    //     return real;
+    // } else {
+    //     return docroot;
+    // }
+    return path;
 }
 
 char *
@@ -71,18 +71,19 @@ reader(int fd) {
     char* protocol;
     int index;
 
-    recv(client_fd, buf, BUFSIZE, 0);
+    recv(fd, buf, BUFSIZE, 0);
 
     char* line = NULL;
     line = strtok(buf, "\r\n");
 
     printf("Request:\n");
+
     bool firstLine = true;
     while (line != NULL) {
-        printf("[%d]%s\n",n, line);
+        printf("%s\n", line);
         if (firstLine) {
             /* First line */
-            printf("[%d]%s\n",n, line);
+            printf("%s\n", line);
             // char *method, *part, *protocol
             part = strtok(line, " ");
             index = 0;
@@ -91,7 +92,7 @@ reader(int fd) {
                 if (index == 0) {
                     method = strdup(part);
                 } else if (index == 1) {
-                    part = strdup(part);
+                    path = strdup(part);
                 } else if (index == 2) {
                     protocol = strdup(part);
                 }
@@ -105,14 +106,14 @@ reader(int fd) {
             } else {
                 if (!checkMethod(method)) {
                     /* Method was not "GET" or "HEAD" */
-                    if (d_flag) {
+                    if (d_FLAG) {
                         fprintf(stderr, "405 Method Not Allowed");
                     }
                     return "405 Method Not Allowed";
                 } else if (!checkProtocol(protocol)){
-                    return;
+                    return "CHANGE";
                 } else if (!checkPath(path)) {
-                    return;
+                    return "CHANGE";
                 } else {
                     /* Everything is good for frist line */
                 }
@@ -124,4 +125,5 @@ reader(int fd) {
         line = strtok(NULL, "\r\n");
         firstLine = false;
     }
+    return "CHANGE";
 }

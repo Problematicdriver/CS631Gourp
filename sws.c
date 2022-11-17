@@ -120,7 +120,7 @@ main(int argc, char** argv) {
     // call to create socket
     // create_socket();
     int value;
-    if ((value = create_socket()) != 0) {
+    if ((value = socket_select()) != 0) {
 
         // if (d_FLAG) {
         fflush(stderr);

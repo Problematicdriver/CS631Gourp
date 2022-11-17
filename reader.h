@@ -2,6 +2,7 @@
 #define READER_HEADER
 
 #include <sys/param.h>
+#include <sys/wait.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -14,3 +15,5 @@ bool checkProtocol(char* protocol);
 bool checkMethod(char* method);
 char* checkPath(char* path);
 char* reader(int fd);
+
+#endif
