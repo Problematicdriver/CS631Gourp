@@ -25,7 +25,7 @@ handle_socket(int server_fd) {
             s = reader(client_fd);
             printf("[reader return]%s\n\n", s);
 
-            // Writer
+            // Writer: Return a Hello world just for showcase
             char response[] = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
             for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
 
@@ -153,7 +153,8 @@ reader(int fd) {
                 printf("\t[%d]%s\n",index, part);
                 part = strtok(NULL, " ");
             }
-            
+            // First line should be 3 fields, or it's invalid
+            // method path protocol
             if (index != 3) {
                 /* Error here */
             } else {
@@ -162,8 +163,10 @@ reader(int fd) {
                     if (d_FLAG) {
                         fprintf(stderr, "405 Method Not Allowed");
                     }
+                    printf("Mehotd Error\n");
                     return "405 Method Not Allowed";
                 } else if (!checkProtocol(protocol)){
+                    printf("Protocol Error\n");
                     return "CHANGE";
                 } else if ((path = checkPath(path)) == NULL) {
                     return "CHANGE";
