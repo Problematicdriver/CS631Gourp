@@ -24,6 +24,7 @@ extern bool p_FLAG;
 
 extern char *_hostname;
 extern char *_port;
+extern char *cgiDir;
 
 extern int _logFD;
 
