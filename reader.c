@@ -1,6 +1,7 @@
 #include "reader.h"
 
-void handle_socket(int server_fd) {
+void 
+handle_socket(int server_fd) {
     /* Buffer for storing client request */
     int client_fd, childpid;
     for (;;) {
@@ -39,27 +40,74 @@ void handle_socket(int server_fd) {
     }
 }
 
-bool checkProtocol(char* protocol) {
+bool 
+checkProtocol(char* protocol) {
     return ((strncmp(protocol, "HTTP/1.0", 9) == 0) ||
-        (strncmp(protocol, "HTTP/0.9", 9) == 0));
+        (strncmp(protocol, "HTTP/0.9", 9) == 0) || 
+        (strncmp(protocol, "HTTP/1.1", 9) == 0));;
 }
 
-bool checkMethod(char* method) {
+bool 
+checkMethod(char* method) {
     return ((strncmp(method, "GET", 4) == 0) ||
         (strncmp(method, "HEAD", 5) == 0));
 }
 
-char* checkPath(char* path) {
-    // char* real;
-    // char* docroot;
-    // docroot = realpath(".");
-    // real = realpath(path);
-    // if (strncmp(docroot, real, strlen(docroot)) == 0) {
-    //     return real;
-    // } else {
-    //     return docroot;
-    // }
-    return path;
+bool
+isPrefix(char* string, char* prefix) {
+    return strncmp(string, prefix, strlen(prefix)) == 0;
+}
+
+char *
+checkPath(char* path) {
+
+    char* part;
+    char* updated_path = (char *)malloc(sizeof(char)*PATH_MAX);
+
+    if(updated_path == NULL){
+        (void)printf("Error while allocating buffer : %s\n", strerror(errno));
+		exit(1);
+    }
+    updated_path[0] = '\0';
+
+    if(isPrefix(path, "/cgi-bin")) {
+
+        if(!c_FLAG) {
+            (void)printf("Error c flag is not found : %s\n", strerror(errno));
+            exit(1);
+        }
+
+        int index;
+        part = strtok(path, "/");
+        index = 0;
+
+        while (part != NULL) {
+            if (index == 0) {
+                if (strcat(updated_path, cgiDir) == NULL){
+                     (void)printf("Error while processing path : %s\n", strerror(errno));
+                     exit(1);
+                }
+            } else {
+                if (strcat(updated_path, "/") == NULL){
+                     (void)printf("Error while processing path : %s\n", strerror(errno));
+                     exit(1);
+                }
+                if (strcat(updated_path, part) == NULL){
+                     (void)printf("Error while processing path : %s\n", strerror(errno));
+                     exit(1);
+                }
+            }
+            index++;
+            part = strtok(NULL, "/");
+        }
+    } else {
+        part = strtok(path, "?");
+        if((updated_path = strdup(part))==NULL) {
+            (void)printf("Error while processing path : %s\n", strerror(errno));
+            exit(1);
+        }
+    }
+    return updated_path;
 }
 
 char *
@@ -120,10 +168,10 @@ reader(int fd) {
                 } else if (!checkProtocol(protocol)){
                     printf("Protocol Error\n");
                     return "CHANGE";
-                } else if (!checkPath(path)) {
+                } else if ((path = checkPath(path)) == NULL) {
                     return "CHANGE";
                 } else {
-                    /* Everything is good for frist line */
+                    /* Everything is good for first line */
                 }
             }
         } else {
