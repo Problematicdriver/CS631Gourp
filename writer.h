@@ -28,15 +28,16 @@ typedef struct reader_response {
     time_t mtime;
     char* requestTime;
     char* remoteIp;
+    bool cig;
 } reader_response;
 
 void writer(reader_response r_response, int client_fd);
 void send_response(int client_fd, void *response, size_t length);
-char* r_body(char* path);
+char* r_body(char* path, bool cgi);
 char* file_content(char* path);
 char* dir_content(char* path);
 char* cgi_content(char* path);
-struct response response_content(int code, char* path);
+struct response response_content(int code, char* path, bool cgi);
 char* get_last_modified(char *path);
 char* get_time();
 char* get_type(char *path);

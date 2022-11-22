@@ -6,7 +6,7 @@ void writer(reader_response r_response, int client_fd){
     printf("reader(): %s\n", r_response.response);
 
     /* Initialize the http response */
-    struct response r = response_content(r_response.statusCode, r_response.path);
+    struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
 
     /* Send the http response */
     char* result;
@@ -63,7 +63,7 @@ void send_response(int client_fd, void *response, size_t length)
 }
 
 char* 
-r_body(char* path){
+r_body(char* path, bool cgi){
     struct stat path_stat;
     stat(path, &path_stat);
     /* DIR */
@@ -83,11 +83,14 @@ r_body(char* path){
         }
         
     } else {
+	/* cgi outputt */
+	if(cgi){
+		return cgi_content(path);
+	}
+
         /* NOT DIR, file_content */
         return file_content(path);
-        /* cgi-bin not implemented yet */
     }
-    return "fuck";
 }
 
 char* 
@@ -168,7 +171,7 @@ cgi_content(char* path){
 }
 
 struct response
-response_content(int code, char* path){
+response_content(int code, char* path, bool cgi){
     /* Prepare for date */
     char body[BUFSIZ];
     char *content_length = "Content-Length:";
@@ -198,7 +201,7 @@ response_content(int code, char* path){
         // Last-Modified   
         r.status_code = "200";
         r.status_message = "OK";
-        r.body = r_body(path);
+        r.body = r_body(path, cgi);
 
         asprintf(&last_modified, "%s %s", last_modified, get_last_modified(path));
         r.last_modified = last_modified;
