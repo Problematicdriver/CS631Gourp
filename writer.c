@@ -7,16 +7,21 @@ void writer(reader_response r_response, int client_fd){
 
     /* Initialize the http response */
     struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
+    char *last_modified = "";
+    if(strcmp(r.last_modified, "")){
+	printf("[r.last_modified]%s\n", r.last_modified);
+	asprintf(&last_modified, "%s\r\n", r.last_modified);
+    }
 
     /* Send the http response */
     char* result;
     // Last-Modified not print now just for debugging
-    int size = asprintf(&result, "%s %s %s\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n\r\n%s\r\n\r\n",
+    int size = asprintf(&result, "%s %s %s\r\n%s\r\n%s%s\r\n%s\r\n%s\r\n\r\n%s\r\n\r\n",
         r.http_version, 
         r.status_code,
         r.status_message,
         r.date,
-        r.last_modified,
+        last_modified,
         r.server,
         r.content_type,
         r.content_length,
