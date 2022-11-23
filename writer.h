@@ -42,6 +42,7 @@ struct response response_content(int code, char* path, bool cgi);
 char* get_last_modified(char *path);
 char* get_time();
 char* get_type(char *path);
+char* index_html(char *path);
 
 void logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status, int responseSize);
 

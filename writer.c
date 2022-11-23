@@ -73,6 +73,21 @@ r_body(char* path, bool cgi){
     struct stat path_stat;
     stat(path, &path_stat);
     if (S_ISDIR(path_stat.st_mode)) {
+            return dir_content(path);
+    } else {
+	    if (cgi){
+		    return cgi_content(path);
+	    } else {
+            return file_content(path);
+        }
+    }
+}
+
+char*
+index_html(char* path){
+    struct stat path_stat;
+    stat(path, &path_stat);
+    if (S_ISDIR(path_stat.st_mode)) {
         char* index_file;
         asprintf(&index_file, "%s%s", path, "/index.html");
         struct stat index_stat;
@@ -82,17 +97,14 @@ r_body(char* path, bool cgi){
          * else response all file names in DIR 
          */
         if (S_ISREG(index_stat.st_mode)) {
-            return file_content(index_file);
+            return index_file;
         } else {
-            return dir_content(path);
+            return NULL;
         }
-        
     } else {
-	    if (cgi){
-		    return cgi_content(path);
-	    }
-        return file_content(path);
+        return NULL;
     }
+        
 }
 
 char* 
@@ -188,7 +200,12 @@ response_content(int code, char* path, bool cgi){
     char *content_type = "Content-Type:";
     char *last_modified = "Last-Modified:";
     char *date = "Date:";
-    
+    /* check if there's a index.html inside dir */
+    char *index = index_html(path);
+    if(index != NULL){
+        path = index;
+    }
+
     asprintf(&date, "%s %s", date, get_time());
 
     struct response r = {
@@ -210,7 +227,7 @@ response_content(int code, char* path, bool cgi){
 
     switch (code) {
     case 200:
-        
+
         r.status_code = "200";
         r.status_message = "OK";
         r.body = r_body(path, cgi);
@@ -221,6 +238,7 @@ response_content(int code, char* path, bool cgi){
         r.last_modified = last_modified;
         asprintf(&content_length, "%s %ld", content_length, strlen(r.body));
         r.content_length = content_length;
+
         asprintf(&content_type, "%s %s", content_type, type);
         r.content_type = content_type;
 
