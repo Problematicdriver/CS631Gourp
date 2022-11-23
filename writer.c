@@ -103,7 +103,7 @@ file_content(char* path){
         if (d_FLAG) {
             (void)printf("malloc: %s\n", strerror(errno));
         }
-        return "";
+        return NULL;
     }
     strlcpy(r, str, size);
     return r;
@@ -128,12 +128,17 @@ dir_content(char* path) {
 	}
 	printf("Size: %d\n", size);
 	
-    char* r = malloc(sizeof(char) * size);
+    char *r;
+    if ((r = malloc(sizeof(char) * size)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+        return NULL;
+    }
     strlcpy(r, str, size);
 	(void)closedir(dp);
 	return r;
 }
-
 char* cgi_content(char* filepath){
 
     FILE *fp;
@@ -144,8 +149,8 @@ char* cgi_content(char* filepath){
     /* Open the command for reading. */
     fp = popen(path, "r");
     if (fp == NULL) {
-    printf("Failed to run command\n" );
-    exit(1);
+        printf("Failed to run command\n" );
+        return NULL;
     }
 
     int size = 0;
@@ -158,7 +163,13 @@ char* cgi_content(char* filepath){
     /* close */
     pclose(fp);
 
-    char* r = malloc(sizeof(char) * size);
+    char *r;
+    if ((r = malloc(sizeof(char) * size)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+        return NULL;
+    }
     strlcpy(r, str, size);
     return r;
 }
@@ -186,10 +197,7 @@ response_content(int code, char* path, bool cgi){
     
     char *modified_date = get_last_modified(path);
     char *type = get_type(path);
-    if (code == 200 && strcmp(modified_date, "")) {
-        code = 500;
-    }
-    if (code == 200 && strcmp(type, "")) {
+    if (code == 200 && (modified_date == NULL || type == NULL || date == NULL)) {
         code = 500;
     }
 
@@ -199,7 +207,9 @@ response_content(int code, char* path, bool cgi){
         r.status_code = "200";
         r.status_message = "OK";
         r.body = r_body(path, cgi);
-        
+        if(r.body == NULL){
+            goto server_error;
+        } 
         asprintf(&last_modified, "%s %s", last_modified, modified_date);
         r.last_modified = last_modified;
         asprintf(&content_length, "%s %ld", content_length, strlen(r.body));
@@ -261,6 +271,7 @@ response_content(int code, char* path, bool cgi){
         r.content_type = "Content-Type: text/html\r\n";
         break;
     case 500:
+    server_error:
         r.status_code = "500";
         r.status_message = "Internal Server Error";
         r.body = "500 Internal Server Error";
@@ -292,11 +303,11 @@ get_last_modified(char *path)
 
     if (lstat(path, &sb) < 0) {
         fprintf(stderr, "lstat() %s\n", strerror(errno));
-        return "";
+        return NULL;
     }
     if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
-        return "";
+        return NULL;
     }
     int len = strlen(s);
     s[len - 1] = '\0';
@@ -310,11 +321,11 @@ get_time() {
     char *s, *t;
     if ((now = time(0)) == (time_t)-1) {
         fprintf(stderr, "time() %s\n",  strerror(errno));
-        return "Not Available";
+        return NULL;
     }
     if ((s = (asctime(gmtime(&now)))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
-        return "Not Available";
+        return NULL;
     }
     int len = strlen(s);
     s[len-1] = '\0';
@@ -331,19 +342,19 @@ get_type(char *path) {
         if (d_FLAG) {
             (void)printf("magic_open() %s\n", strerror(errno));    
         }
-        return "";
+        return NULL;
     } 
     if (magic_load(magic, NULL) < 0) {
         if (d_FLAG) {
             (void)printf("magic_load() %s\n", strerror(errno));
         }
-        return "";
+        return NULL;
     }
     if ((mime = magic_file(magic, path)) == NULL) {
         if (d_FLAG) {
             (void)printf("magic_file() %s\n", strerror(errno));
         }
-        return "";
+        return NULL;
     }
     magic_close(magic);
     asprintf(&type, "%s\r\n", mime);
