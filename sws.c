@@ -13,12 +13,16 @@ bool h_FLAG;
 bool i_FLAG;
 bool l_FLAG;
 bool p_FLAG;
+char* docroot;
+char* cgidir;
 char* hostname;
-char* cgiDir;
 char* logFile;
 char* port;
 int ch;
 int _logFD;
+struct stat docrootSB;
+struct stat cgidirSB;
+
 
 int
 main(int argc, char** argv) {
@@ -35,7 +39,7 @@ main(int argc, char** argv) {
         switch (ch) {
             case 'c':
                 c_FLAG = true;
-                cgiDir = optarg;
+                cgidir = optarg;
                 break;
             case 'd':
                 d_FLAG = true;
@@ -62,17 +66,73 @@ main(int argc, char** argv) {
 
     if (
         h_FLAG ||
-        (c_FLAG && cgiDir==NULL) ||
+        (c_FLAG && cgidir==NULL) ||
         (i_FLAG && hostname==NULL) ||
         (l_FLAG && logFile==NULL) ||
-        (p_FLAG && port==NULL)
+        (p_FLAG && port==NULL) ||
+        (optind+1 != argc)
     ) {
         (void)printf("Usage: %s [ −dh] [ −c dir] [ −i address] [ −l file] [ −p port] dir\n", argv[0]);
         return EXIT_SUCCESS;
     }
 
+    if (d_FLAG) {
+        (void)printf("Debugging mode active.\n");
+    }
+
+    /* Confirm the entered docroot is a valid directory. */
+    docroot = argv[argc-1];
+    char* real_docroot;
+    if ((real_docroot = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
+        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+        return EXIT_FAILURE;
+    } else if (realpath(docroot, real_docroot) == NULL) {
+        (void)fprintf(stderr, "realpath of %s: %s\n", docroot, strerror(errno));
+        return EXIT_FAILURE;
+    } else {
+        if (d_FLAG) {
+            (void)printf("The realpath of %s is %s\n", docroot, real_docroot);
+        }
+    }
+
+    if (stat(real_docroot, &docrootSB) == -1) {
+        (void)fprintf(stderr, "Can't stat %s", real_docroot);
+        return EXIT_FAILURE;
+    } else if (!S_ISDIR(docrootSB.st_mode)) {
+        (void)fprintf(stderr, "%s not a directory.\n", real_docroot);
+        return EXIT_FAILURE;
+    } else if (d_FLAG) {
+        (void)printf("%s is a directory.\n", real_docroot);
+    }
+
+    /* Confirm the entered cgidir is a valid directory. */
+    if (c_FLAG) {
+        char* real_cgidir;
+        if ((real_cgidir = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
+            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+            return EXIT_FAILURE;
+        } else if (realpath(cgidir, real_cgidir) == NULL) {
+            (void)fprintf(stderr, "realpath of %s: %s\n", cgidir, strerror(errno));
+            return EXIT_FAILURE;
+        } else {
+            if (d_FLAG) {
+                (void)printf("The realpath of %s is %s\n", cgidir, real_cgidir);
+            }
+        }
+
+        if (stat(real_cgidir, &cgidirSB) == -1) {
+            (void)fprintf(stderr, "Can't stat %s", real_docroot);
+            return EXIT_FAILURE;
+        } else if (!S_ISDIR(cgidirSB.st_mode)) {
+            (void)fprintf(stderr, "%s: %s not a directory.\n", argv[0], real_cgidir);
+            return EXIT_FAILURE;
+        } else if (d_FLAG) {
+            (void)printf("%s is a directory.\n", real_cgidir);
+        }
+    }
+
+
     if (l_FLAG) {
-        // open/create the file O_CREAT O_APPEND
         if ((_logFD = open(logFile, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR)) == -1){
             if (d_FLAG) {
                 (void)fprintf(stderr, "Error: create/open log file: %s\n", strerror(errno));
@@ -81,42 +141,38 @@ main(int argc, char** argv) {
         }
     }
 
-    /* Debugging information. */
-    if (d_FLAG) {
-        printf("Debugging mode active.\n");
-
-        // check it is a directory?
-        if (c_FLAG) {
-            printf("%s\n", cgiDir);
-        }
-
-        // check it is a valid IP?
-        if (i_FLAG) {
-            //Check Ipv4
-            struct in_addr addr4;
-            if(inet_pton(PF_INET, hostname, (void *)&addr4) != 1) {
-                //Check Ipv6
-                struct in6_addr addr6;
-                if(inet_pton(PF_INET6, hostname, (void *)&addr6) != 1) {
-                    (void)fprintf(stderr, "Error: invalid IP.\n");
-                    return EXIT_FAILURE;
-                }
-            }
-
-            
-        }
-        
-        // check it is a valid port?
-        if (p_FLAG) {
-            // potentially 1025 to avoid priviliedged ports
-            if (atoi(port) < 0 || atoi(port) > 65536) {
-                (void)fprintf(stderr, "Error: invalid port number.\n");
+    // check it is a valid IP?
+    if (i_FLAG) {
+        //Check Ipv4
+        struct in_addr addr4;
+        if(inet_pton(PF_INET, hostname, (void *)&addr4) != 1) {
+            //Check Ipv6
+            struct in6_addr addr6;
+            if(inet_pton(PF_INET6, hostname, (void *)&addr6) != 1) {
+                (void)fprintf(stderr, "Error: invalid IP.\n");
                 return EXIT_FAILURE;
             }
-            printf("%s\n", port);
         }
+
+        
+    }
+    
+    // check it is a valid port?
+    if (p_FLAG) {
+        // potentially 1025 to avoid priviliedged ports
+        if (atoi(port) < 0 || atoi(port) > 65536) {
+            (void)fprintf(stderr, "Error: invalid port number.\n");
+            return EXIT_FAILURE;
+        }
+        printf("%s\n", port);
     }
 
+    if (!d_FLAG) {
+        if (daemon(0, 0) == -1) {
+            (void)fprintf(stderr, "daemon: %s\n", strerror(errno));
+            return EXIT_FAILURE;
+        }
+    }
     // call to create socket
     // create_socket();
     int value;

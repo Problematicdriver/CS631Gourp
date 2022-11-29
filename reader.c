@@ -26,7 +26,7 @@ handle_socket(int server_fd) {
             printf("[reader return]%s\n\n", s);
 
             // Writer: Return a Hello world just for showcase
-            char response[] = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
+            char response[] = "HTTP/1.0 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
             for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
 
             /* Close the client socket connection */
@@ -81,9 +81,23 @@ checkPath(char* path) {
         part = strtok(path, "/");
         index = 0;
 
+        // added right now to solve errors in compilation needs to be updated
+        char* real_cgidir;
+        if ((real_cgidir = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
+            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        } else if (realpath(cgidir, real_cgidir) == NULL) {
+            (void)fprintf(stderr, "realpath of %s: %s\n", cgidir, strerror(errno));
+            exit(EXIT_FAILURE);
+        } else {
+            if (d_FLAG) {
+                (void)printf("The realpath of %s is %s\n", cgidir, real_cgidir);
+            }
+        }
+
         while (part != NULL) {
             if (index == 0) {
-                if (strcat(updated_path, cgiDir) == NULL){
+                if (strcat(updated_path, real_cgidir) == NULL){
                      (void)printf("Error while processing path : %s\n", strerror(errno));
                      exit(1);
                 }

@@ -1,6 +1,7 @@
 #ifndef SWS_HEADER
 #define SWS_HEADER
 
+#include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 
@@ -22,9 +23,10 @@ extern bool i_FLAG;
 extern bool l_FLAG;
 extern bool p_FLAG;
 
+extern char *cgidir;
+extern char *docroot;
 extern char *_hostname;
 extern char *_port;
-extern char *cgiDir;
 
 extern int _logFD;
 
