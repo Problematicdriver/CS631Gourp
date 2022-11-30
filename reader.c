@@ -218,18 +218,51 @@ checkPath(char* path) {
         /* No special case, prepend real_docroot. */
         updatePath(&updated_path, newpath, real_docroot);
     }
-    
+
+    if(!isPrefix(real_docroot, updated_path)) {
+        /* Do until prefix match and then add all remaining */
+        char* part_docroot;
+        char* part_updated_path;
+        char *p1, *p2;
+
+        part_docroot = strtok_r(strdup(real_docroot), "/", &p1);
+        part_updated_path = strtok_r(strdup(updated_path),"/", &p2);
+        
+        while (part_docroot != NULL && part_updated_path != NULL) {
+            if(
+                (strlen(part_docroot) != strlen(part_updated_path)) || 
+                (strncmp(part_docroot, part_updated_path, strlen(part_docroot)) != 0)
+            ){
+                char* final_updated_path;
+                if ((final_updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
+                    exit(1);
+                } 
+                final_updated_path[0] = '\0';
+                size = strlcat(final_updated_path, real_docroot, PATH_MAX - strlen(final_updated_path));
+                final_updated_path[size + 1] = '\0';
+                size = strlcat(final_updated_path, "/", PATH_MAX - strlen(final_updated_path));
+                final_updated_path[size + 1] = '\0';
+                size = strlcat(final_updated_path, part_updated_path, PATH_MAX - strlen(final_updated_path));
+                final_updated_path[size + 1] = '\0';
+                updated_path = strdup(final_updated_path);
+                break;
+            }
+            part_docroot = strtok_r(NULL, "/", &p1);
+            part_updated_path = strtok_r(NULL, "/", &p2);
+        }
+    }
+
     char* real_updated;
-    if ((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
+    if((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
         (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
         exit(1);
-    } else if (realpath(updated_path, real_updated) == NULL) {
+    }
+    if (realpath(updated_path, real_updated) == NULL) {
         (void)fprintf(stderr, "realpath of %s: %s\n", updated_path, strerror(errno));
         exit(1);
-    } else {
-        if (d_FLAG) {
-            (void)printf("The realpath of docroot %s is %s\n", updated_path, real_updated);
-        }
+    }
+    if (d_FLAG) {
+        (void)printf("The realpath of docroot %s is %s\n", updated_path, real_updated);
     }
     return real_updated;
 }
