@@ -25,9 +25,11 @@ extern bool p_FLAG;
 
 extern char *cgidir;
 extern char *docroot;
-extern char *_hostname;
-extern char *_port;
+extern char *hostname;
+extern char *port;
+extern char *real_cgidir;
+extern char *real_docroot;
 
-extern int _logFD;
+extern int logFD;
 
 #endif

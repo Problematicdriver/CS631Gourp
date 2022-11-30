@@ -43,8 +43,7 @@ handle_socket(int server_fd) {
 bool 
 checkProtocol(char* protocol) {
     return ((strncmp(protocol, "HTTP/1.0", 9) == 0) ||
-        (strncmp(protocol, "HTTP/0.9", 9) == 0) || 
-        (strncmp(protocol, "HTTP/1.1", 9) == 0));;
+        (strncmp(protocol, "HTTP/0.9", 9) == 0));
 }
 
 bool 
@@ -58,70 +57,197 @@ isPrefix(char* string, char* prefix) {
     return strncmp(string, prefix, strlen(prefix)) == 0;
 }
 
+int
+isValidDate(char *date, struct tm *tm) {
+    /* this part needs work */
+    return 0;
+}
+
+int isValidContent(char *content)
+{
+    return (strcmp(content, "Date") == 0 ||
+        strcmp(content, "Server") == 0 ||
+        strcmp(content, "Last-Modified") == 0 ||
+        strcmp(content, "Content-Type") == 0 ||
+        strcmp(content, "Content-Length") == 0);
+}
+
+int
+isValidHeader(char *line, int *checkDate, struct tm *tm) 
+{
+    /* Content-Type: text/html; charset=utf-8 */
+
+    char dup_line = strdup(line);
+    char *tok, *const d = "If-Modified-Since";
+
+    if (dup_line[0] == ':') {
+        /* should not have start with ':' */
+        fprintf(stderr, "invalid header");
+        return 1;
+    }
+
+    tok = strtok(dup_line, ":");
+    if (isValidContent(tok)) {
+        fprintf(stderr, "invalid header");
+        return 1;
+    }
+    if (strcmp(tok, d) == 0) {
+        /* if this is Modified-Since */
+        if (checkDate == 1) {
+            /* duplicate Modified-Since */
+            fprintf(stderr, "dulplicate If-Modified-Since");
+            return 1;
+        }
+        *checkDate = 1;
+    }
+
+    tok = strtok(NULL, "");
+    if (tok == NULL) {
+        /* should be exactly 2 tokens */
+        fprintf(stderr, "invalid header");
+        return 1;
+    }
+    if (*checkDate == 1) {
+        /* this token is a date string */
+        if (isValidDate(tok, tm) != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void
+updatePath(char** updated_path, char* path, char* initial) {
+    char* part;
+    int depth;
+    int index;
+    int size;
+    part = strtok(strdup(path), "/");
+    depth = 0;
+    index = 0;
+    size = 0;
+    
+    while (part != NULL) {
+        if (index == 0) {
+            size = strlcat((char *)*updated_path, initial, PATH_MAX - strlen((const char *)*updated_path));
+            updated_path[size + 1] = '\0';
+        } else {
+            if (!(strncmp(part, "..", 3) == 0) || (depth > 0)) {
+                if (strncmp(part, "..", 3) == 0) {
+                    depth--;
+                } else {
+                    depth++;
+                }
+                printf("~~~~~~~~~~~~~~~~~~~~~~~~~%d\n", depth);
+                size = strlcat((char *)*updated_path, "/", PATH_MAX - strlen((const char *)*updated_path));
+                updated_path[size + 1] = '\0';
+                size = strlcat((char *)*updated_path, part, PATH_MAX - strlen((const char *)*updated_path));
+                updated_path[size + 1] = '\0';
+            }
+        }
+        index++;
+        part = strtok(NULL, "/");
+    }
+}
+
 char *
 checkPath(char* path) {
-
+    char* newpath;
+    char* host;
     char* part;
-    char* updated_path = (char *)malloc(sizeof(char)*PATH_MAX);
+    char* updated_path;
+    int size;
 
-    if(updated_path == NULL){
-        (void)printf("Error while allocating buffer : %s\n", strerror(errno));
-		exit(1);
+    if (path[0] != '/') {
+        /* Remove schema and hostname from path. */
+        if ((host = strstr(strdup(path), "://")) != NULL) {
+            host = (host+3);
+        } else {
+            host = strdup(path);
+        }
+        newpath = strstr(strdup(host),"/");
+    } else {
+        newpath = strdup(path);
     }
+
+
+    if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+        exit(1);
+    } 
     updated_path[0] = '\0';
 
-    if(isPrefix(path, "/cgi-bin")) {
+    if (isPrefix(newpath, "/cgi-bin/") && c_FLAG) {
+        /* 
+         * /cgi-bin/ can be a valid directory within the docroot. 
+         * Only convert /cgi-bin/ into the path to cgidir if the c flag is set.
+         */
+        updatePath(&updated_path, newpath, real_cgidir);
+    } else if ((!isPrefix(newpath, "/~/") && isPrefix(newpath, "/~"))) {
+    
+        /* Resolve ~user to home directory of that user. */
+        char *homedir;
+        struct passwd *user;
 
-        if(!c_FLAG) {
-            (void)printf("Error c flag is not found : %s\n", strerror(errno));
-            exit(1);
-        }
-
-        int index;
-        part = strtok(path, "/");
-        index = 0;
-
-        // added right now to solve errors in compilation needs to be updated
-        char* real_cgidir;
-        if ((real_cgidir = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
-            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-        } else if (realpath(cgidir, real_cgidir) == NULL) {
-            (void)fprintf(stderr, "realpath of %s: %s\n", cgidir, strerror(errno));
-            exit(EXIT_FAILURE);
-        } else {
+        if ((homedir = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
             if (d_FLAG) {
-                (void)printf("The realpath of %s is %s\n", cgidir, real_cgidir);
+                (void)printf("malloc: %s\n", strerror(errno));
             }
-        }
-
-        while (part != NULL) {
-            if (index == 0) {
-                if (strcat(updated_path, real_cgidir) == NULL){
-                     (void)printf("Error while processing path : %s\n", strerror(errno));
-                     exit(1);
-                }
-            } else {
-                if (strcat(updated_path, "/") == NULL){
-                     (void)printf("Error while processing path : %s\n", strerror(errno));
-                     exit(1);
-                }
-                if (strcat(updated_path, part) == NULL){
-                     (void)printf("Error while processing path : %s\n", strerror(errno));
-                     exit(1);
-                }
-            }
-            index++;
-            part = strtok(NULL, "/");
-        }
-    } else {
-        part = strtok(path, "?");
-        if((updated_path = strdup(part))==NULL) {
-            (void)printf("Error while processing path : %s\n", strerror(errno));
             exit(1);
+        } 
+
+        part = strtok(strdup(newpath), "-");
+        if ((user = getpwnam(part+1)) == NULL) {
+            /* error here */
+            fprintf(stderr,"err: %s\n", strerror(errno));
+            exit(1);
+        }
+    
+        size = strlcat(homedir, user->pw_dir, PATH_MAX - strlen(homedir));
+        homedir[size + 1] = '\0';
+        size = strlcat(homedir, "/sws", PATH_MAX - strlen(homedir));
+        homedir[size + 1] = '\0';
+        updatePath(&updated_path, newpath, homedir);
+    } else {
+        /* No special case, prepend real_docroot. */
+        updatePath(&updated_path, newpath, real_docroot);
+    }
+    
+    char* real_updated;
+    if ((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
+        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+        exit(1);
+    } else if (realpath(updated_path, real_updated) == NULL) {
+        (void)fprintf(stderr, "realpath of %s: %s\n", updated_path, strerror(errno));
+        exit(1);
+    } else {
+        if (d_FLAG) {
+            (void)printf("The realpath of docroot %s is %s\n", updated_path, real_updated);
         }
     }
-    return updated_path;
+    return real_updated;
+}
+
+void
+logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, char* status, char* responseSize) {
+    char* logging_buffer;
+    int n;
+
+    if ((logging_buffer = (char *)malloc(sizeof(char)*BUFSIZE)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+		exit(1);
+    } 
+    sprintf(logging_buffer, "%s %s %s %s %s", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
+    if(n = write(logFD, logging_buffer, sizeof(logging_buffer)) == -1){
+        if (d_FLAG) {
+            (void)printf("Error while logging into file: %s\n", strerror(errno));
+        }
+		exit(1);
+    }
 }
 
 char *
@@ -132,6 +258,11 @@ reader(int fd) {
     char* path;
     char* protocol;
     int index;
+    int checkDate = 0;
+    int f_invalid_header;
+
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
 
     recv(fd, buf, BUFSIZE, 0);
     int n = 0;
@@ -175,21 +306,28 @@ reader(int fd) {
                 if (!checkMethod(method)) {
                     /* Method was not "GET" or "HEAD" */
                     if (d_FLAG) {
-                        fprintf(stderr, "405 Method Not Allowed");
+                        (void)printf("405 Method Not Allowed");
                     }
                     printf("Mehotd Error\n");
                     return "405 Method Not Allowed";
                 } else if (!checkProtocol(protocol)){
                     printf("Protocol Error\n");
                     return "CHANGE";
-                } else if ((path = checkPath(path)) == NULL) {
-                    return "CHANGE";
-                } else {
-                    /* Everything is good for first line */
                 }
+                path = checkPath(path);
+                /* Actually serve. */
+
+                
+                /* Logging if l flag is given 
+                if(l_FLAG) {
+                    logging(method, path, protocol, response);
+                }
+                */
+                
             }
         } else {
             /* (Header) Anything other than First line */
+            f_invalid_header = isValidHeader(line, &checkDate, &tm);
         }
         line = strtok(NULL, "\r\n");
         n++;

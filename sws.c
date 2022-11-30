@@ -1,31 +1,14 @@
-// Testing this is joe
-// Hey
-
 #include "socket.h"
 #include "sws.h"
 
 #define OPTSTRING "c:dhi:l:p:"
 #define DEFAULT_PORT "8080"
 
-bool c_FLAG;
-bool d_FLAG;
-bool h_FLAG;
-bool i_FLAG;
-bool l_FLAG;
-bool p_FLAG;
-char* docroot;
-char* cgidir;
-char* hostname;
-char* logFile;
-char* port;
-int ch;
-int _logFD;
-struct stat docrootSB;
-struct stat cgidirSB;
-
-
 int
 main(int argc, char** argv) {
+    int ch;
+    struct stat cgidirSB;
+    struct stat docrootSB;
     c_FLAG = false;
     d_FLAG = false;
     h_FLAG = false;
@@ -91,7 +74,7 @@ main(int argc, char** argv) {
         return EXIT_FAILURE;
     } else {
         if (d_FLAG) {
-            (void)printf("The realpath of %s is %s\n", docroot, real_docroot);
+            (void)printf("The realpath of docroot %s is %s\n", docroot, real_docroot);
         }
     }
 
@@ -116,7 +99,7 @@ main(int argc, char** argv) {
             return EXIT_FAILURE;
         } else {
             if (d_FLAG) {
-                (void)printf("The realpath of %s is %s\n", cgidir, real_cgidir);
+                (void)printf("The realpath of cgidir %s is %s\n", cgidir, real_cgidir);
             }
         }
 
@@ -133,38 +116,33 @@ main(int argc, char** argv) {
 
 
     if (l_FLAG) {
-        if ((_logFD = open(logFile, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR)) == -1){
+        if ((logFD = open(logFile, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR)) == -1){
             if (d_FLAG) {
-                (void)fprintf(stderr, "Error: create/open log file: %s\n", strerror(errno));
+                (void)printf("Error: create/open log file: %s\n", strerror(errno));
             }
             return EXIT_FAILURE;
         }
     }
 
-    // check it is a valid IP?
     if (i_FLAG) {
-        //Check Ipv4
         struct in_addr addr4;
         if(inet_pton(PF_INET, hostname, (void *)&addr4) != 1) {
-            //Check Ipv6
             struct in6_addr addr6;
             if(inet_pton(PF_INET6, hostname, (void *)&addr6) != 1) {
                 (void)fprintf(stderr, "Error: invalid IP.\n");
                 return EXIT_FAILURE;
             }
-        }
-
-        
+        }    
     }
-    
-    // check it is a valid port?
+
     if (p_FLAG) {
-        // potentially 1025 to avoid priviliedged ports
         if (atoi(port) < 0 || atoi(port) > 65536) {
             (void)fprintf(stderr, "Error: invalid port number.\n");
             return EXIT_FAILURE;
         }
-        printf("%s\n", port);
+        if (d_FLAG) {
+            (void)printf("The port specified is %s\n", port);
+        }
     }
 
     if (!d_FLAG) {
@@ -173,15 +151,11 @@ main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
     }
-    // call to create socket
-    // create_socket();
+    
     int value;
     if ((value = socket_select()) != 0) {
-
-        // if (d_FLAG) {
         fflush(stderr);
         (void)fprintf(stderr, "create_socket()\n");
-        // }
         return EXIT_FAILURE;
     }
     

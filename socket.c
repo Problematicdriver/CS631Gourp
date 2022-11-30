@@ -6,10 +6,6 @@
 
 struct addrinfo hints, *result, *p;
 
-char* hostname;
-char* port;
-bool d_FLAG;
-
 int
 allocate_fd(struct addrinfo *p)
 {

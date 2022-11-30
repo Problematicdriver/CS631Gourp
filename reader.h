@@ -4,8 +4,11 @@
 #include <sys/param.h>
 #include <sys/wait.h>
 
+#include <pwd.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
+#include <ctype.h>
 
 #include "sws.h"
 
