@@ -119,11 +119,9 @@ isValidHeader(char *line, int *checkDate, struct tm *tm)
 void
 updatePath(char** updated_path, char* path, char* initial) {
     char* part;
-    int depth;
     int index;
     int size;
     part = strtok(strdup(path), "/");
-    depth = 0;
     index = 0;
     size = 0;
     
@@ -132,13 +130,31 @@ updatePath(char** updated_path, char* path, char* initial) {
             size = strlcat((char *)*updated_path, initial, PATH_MAX - strlen((const char *)*updated_path));
             updated_path[size + 1] = '\0';
         } else {
-            if (!(strncmp(part, "..", 3) == 0) || (depth > 0)) {
-                if (strncmp(part, "..", 3) == 0) {
-                    depth--;
-                } else {
-                    depth++;
+            // if (!(strncmp(part, "..", 3) == 0) || (depth > 0)) {
+            //     if (strncmp(part, "..", 3) == 0) {
+            //         depth--;
+            //     } else {
+            //         depth++;
+            //     }
+            //     printf("~~~~~~~~~~~~~~~~~~~~~~~~~%d\n", depth);
+            //     size = strlcat((char *)*updated_path, "/", PATH_MAX - strlen((const char *)*updated_path));
+            //     updated_path[size + 1] = '\0';
+            //     size = strlcat((char *)*updated_path, part, PATH_MAX - strlen((const char *)*updated_path));
+            //     updated_path[size + 1] = '\0';
+            // }
+            if (strncmp(part, "..", 3) == 0) {
+                char* update, *previous;
+                char* tmp = strdup(updated_path);
+                while ((update = strstr(strdup(tmp), "/")) != NULL) {
+                    tmp = update + 1;
+                    previous = strdup(tmp);
                 }
-                printf("~~~~~~~~~~~~~~~~~~~~~~~~~%d\n", depth);
+                if ((update = strstr(strdup(updated_path), previous)) != NULL) {
+                    int current_index = 0;
+                    current_index = update - (char *)*updated_path;
+                    updated_path[current_index] = '\0';
+                }
+            } else {
                 size = strlcat((char *)*updated_path, "/", PATH_MAX - strlen((const char *)*updated_path));
                 updated_path[size + 1] = '\0';
                 size = strlcat((char *)*updated_path, part, PATH_MAX - strlen((const char *)*updated_path));
@@ -198,7 +214,7 @@ checkPath(char* path) {
             exit(1);
         } 
 
-        part = strtok(strdup(newpath), "-");
+        part = strtok(strdup(newpath), "/");
         if ((user = getpwnam(part+1)) == NULL) {
             /* error here */
             fprintf(stderr,"err: %s\n", strerror(errno));
