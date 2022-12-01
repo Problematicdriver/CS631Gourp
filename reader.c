@@ -57,63 +57,84 @@ isPrefix(char* string, char* prefix) {
     return strncmp(string, prefix, strlen(prefix)) == 0;
 }
 
-int
-isValidDate(char *date, struct tm *tm) {
-    /* this part needs work */
-    return 0;
+#define FIELD_SIZE 64
+typedef struct header_info {
+    char header[FIELD_SIZE];
+    char field[FIELD_SIZE];
+    struct header_info *next;
+} header_info;
+
+header_info head;
+
+void
+printHeader() {
+    header_info *ptr;
+    for (ptr = head.next; ptr != NULL; ptr = ptr->next) {
+        printf("%s: %s\n", ptr->header, ptr->field);
+    }
 }
 
-int isValidContent(char *content)
-{
-    return (strcmp(content, "Date") == 0 ||
-        strcmp(content, "Server") == 0 ||
-        strcmp(content, "Last-Modified") == 0 ||
-        strcmp(content, "Content-Type") == 0 ||
-        strcmp(content, "Content-Length") == 0);
-}
+static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
+static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
+static const char *ansic_date = "%a %B %d %T %Y";
 
 int
-isValidHeader(char *line, int *checkDate, struct tm *tm) 
+isValidDate(char *date)
 {
-    /* Content-Type: text/html; charset=utf-8 */
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
+    if (strptime(date, rfc1123_date, &tm) != NULL)
+        return 0;
+    if (strptime(date, rfc850_date, &tm) != NULL)
+        return 0;
+    if (strptime(date, ansic_date, &tm) != NULL)
+        return 0;
+    return 1;
+}
+ 
+#define N_DATE_HEADS 2
+char valid_headers[][FIELD_SIZE] = {
+    "Date",
+    "Last-Modified",
+    "Server",
+    "Content-Type",
+    "Content-Length"
+};
 
-    char dup_line = strdup(line);
-    char *tok, *const d = "If-Modified-Since";
+header_info*
+getHeaderContent(char *line, header_info *ptr) {
+    header_info *next;
+    char header[FIELD_SIZE], field[FIELD_SIZE];
+    size_t i;
 
-    if (dup_line[0] == ':') {
-        /* should not have start with ':' */
-        fprintf(stderr, "invalid header");
-        return 1;
+    if (sscanf(line," %[^: ] : %[^\t]", header, field) < 2) {
+        return ptr;
     }
 
-    tok = strtok(dup_line, ":");
-    if (isValidContent(tok)) {
-        fprintf(stderr, "invalid header");
-        return 1;
-    }
-    if (strcmp(tok, d) == 0) {
-        /* if this is Modified-Since */
-        if (checkDate == 1) {
-            /* duplicate Modified-Since */
-            fprintf(stderr, "dulplicate If-Modified-Since");
-            return 1;
-        }
-        *checkDate = 1;
-    }
-
-    tok = strtok(NULL, "");
-    if (tok == NULL) {
-        /* should be exactly 2 tokens */
-        fprintf(stderr, "invalid header");
-        return 1;
-    }
-    if (*checkDate == 1) {
-        /* this token is a date string */
-        if (isValidDate(tok, tm) != 0) {
-            return 1;
+    for (i = 0; i < sizeof(valid_headers) / FIELD_SIZE; i++) {
+        if (strcmp(header, valid_headers[i]) == 0) {
+            break;
         }
     }
-    return 0;
+
+    if (i == sizeof(valid_headers) / FIELD_SIZE) {
+        return ptr;
+    }
+
+    if (i < N_DATE_HEADS && isValidDate(field) != 0) {
+        fprintf(stderr, "Invalid time format\n");
+        return ptr;
+    }
+
+    if ((next = malloc(sizeof(header_info))) == NULL) {
+        perror("malloc()");
+    }
+
+    strlcpy(next->header, header, FIELD_SIZE);
+    strlcpy(next->field, field, FIELD_SIZE);
+
+    ptr->next = next;
+    return next;
 }
 
 void
@@ -258,11 +279,8 @@ reader(int fd) {
     char* path;
     char* protocol;
     int index;
-    int checkDate = 0;
-    int f_invalid_header;
 
-    struct tm tm;
-    memset(&tm, 0, sizeof(tm));
+    header_info *ptr = &head;
 
     recv(fd, buf, BUFSIZE, 0);
     int n = 0;
@@ -327,10 +345,11 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than First line */
-            f_invalid_header = isValidHeader(line, &checkDate, &tm);
+            ptr = getHeaderContent(line, ptr);
         }
         line = strtok(NULL, "\r\n");
         n++;
     }
+    printHeader();
     return "CHANGE";
 }
