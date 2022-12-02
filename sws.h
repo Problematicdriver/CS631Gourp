@@ -29,7 +29,9 @@ extern char *hostname;
 extern char *port;
 extern char *real_cgidir;
 extern char *real_docroot;
-
 extern int logFD;
+
+char *logFile;
+
 
 #endif

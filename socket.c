@@ -3,6 +3,22 @@
 
 #define TIMEOUT 3
 #define BACKLOG 128
+#define DBG_BACKLOG 1
+
+bool c_FLAG;
+bool d_FLAG;
+bool h_FLAG;
+bool i_FLAG;
+bool l_FLAG;
+bool p_FLAG;
+
+char *cgidir;
+char *docroot;
+char *hostname;
+char *port;
+char *real_cgidir;
+char *real_docroot;
+int logFD;
 
 struct addrinfo hints, *result, *p;
 
@@ -34,7 +50,7 @@ allocate_fd(struct addrinfo *p)
         if (d_FLAG) fprintf(stderr, "getsockname()\n");
         return -1;
     }
-    if (listen(sock_fd, 128) != 0) {
+    if (listen(sock_fd, d_FLAG ? DBG_BACKLOG : BACKLOG) != 0) {
         if (d_FLAG) fprintf(stderr, "listen()\n");
         return -1;
     }
@@ -43,8 +59,6 @@ allocate_fd(struct addrinfo *p)
     printf("Waiting for connection...\n");
     return sock_fd;
 }
-
-
 
 int
 socket_select()

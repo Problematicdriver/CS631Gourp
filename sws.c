@@ -4,6 +4,21 @@
 #define OPTSTRING "c:dhi:l:p:"
 #define DEFAULT_PORT "8080"
 
+bool c_FLAG;
+bool d_FLAG;
+bool h_FLAG;
+bool i_FLAG;
+bool l_FLAG;
+bool p_FLAG;
+
+char *cgidir;
+char *docroot;
+char *hostname;
+char *port;
+char *real_cgidir;
+char *real_docroot;
+int logFD;
+
 int
 main(int argc, char** argv) {
     int ch;

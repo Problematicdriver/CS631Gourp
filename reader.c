@@ -1,5 +1,20 @@
 #include "reader.h"
 
+bool c_FLAG;
+bool d_FLAG;
+bool h_FLAG;
+bool i_FLAG;
+bool l_FLAG;
+bool p_FLAG;
+ 
+char *cgidir;
+char *docroot;
+char *hostname;
+char *port;
+char *real_cgidir;
+char *real_docroot;
+int logFD;
+
 void 
 handle_socket(int server_fd) {
     /* Buffer for storing client request */
@@ -300,7 +315,7 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, char*
 		exit(1);
     } 
     sprintf(logging_buffer, "%s %s %s %s %s", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
-    if(n = write(logFD, logging_buffer, sizeof(logging_buffer)) == -1){
+    if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
