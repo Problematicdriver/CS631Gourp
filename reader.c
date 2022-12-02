@@ -119,37 +119,30 @@ isValidHeader(char *line, int *checkDate, struct tm *tm)
 void
 updatePath(char** updated_path, char* path, char* initial) {
     char* part;
-    int index;
     int size;
     part = strtok(strdup(path), "/");
-    index = 0;
-    size = 0;
+    size = strlcat((char *)*updated_path, initial, PATH_MAX - strlen((const char *)*updated_path));
+    ((char *)*updated_path)[size + 1] = '\0';
 
     while (part != NULL) {
-        if(index == 0) {
-            size = strlcat((char *)*updated_path, initial, PATH_MAX - strlen((const char *)*updated_path));
-            ((char *)*updated_path)[size + 1] = '\0';
-        } else {
-            if (strncmp(part, "..", 3) == 0) {
-                char* update, *previous;
-                char* tmp = strdup((char *)*updated_path);
-                while ((update = strstr(strdup(tmp), "/")) != NULL) {
-                    tmp = update + 1;
-                    previous = strdup(tmp);
-                }
-                if ((update = strstr((char *)*updated_path, previous)) != NULL) {
-                    int current_index = 0;
-                    current_index = update - (char *)*updated_path;
-                    ((char *)*updated_path)[current_index - 1] = '\0';
-                }
-            } else {
-                size = strlcat((char *)*updated_path, "/", PATH_MAX - strlen((const char *)*updated_path));
-                ((char *)*updated_path)[size + 1] = '\0';
-                size = strlcat((char *)*updated_path, part, PATH_MAX - strlen((const char *)*updated_path));
-                ((char *)*updated_path)[size + 1] = '\0';
+        if (strncmp(part, "..", 3) == 0) {
+            char* update, *previous;
+            char* tmp = strdup((char *)*updated_path);
+            while ((update = strstr(strdup(tmp), "/")) != NULL) {
+                tmp = update + 1;
+                previous = strdup(tmp);
             }
+            if ((update = strstr((char *)*updated_path, previous)) != NULL) {
+                int current_index = 0;
+                current_index = update - (char *)*updated_path;
+                ((char *)*updated_path)[current_index - 1] = '\0';
+            }
+        } else {
+            size = strlcat((char *)*updated_path, "/", PATH_MAX - strlen((const char *)*updated_path));
+            ((char *)*updated_path)[size + 1] = '\0';
+            size = strlcat((char *)*updated_path, part, PATH_MAX - strlen((const char *)*updated_path));
+            ((char *)*updated_path)[size + 1] = '\0';
         }
-        index++;
         part = strtok(NULL, "/");
     }
 }
@@ -159,8 +152,11 @@ checkPath(char* path) {
     char* newpath;
     char* host;
     char* part;
+    char* prefix_root;
     char* updated_path;
     int size;
+
+    prefix_root = strdup(real_docroot);
 
     if (path[0] != '/') {
         /* Remove schema and hostname from path. */
@@ -173,7 +169,6 @@ checkPath(char* path) {
     } else {
         newpath = strdup(path);
     }
-
 
     if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
         if (d_FLAG) {
@@ -188,7 +183,8 @@ checkPath(char* path) {
          * /cgi-bin/ can be a valid directory within the docroot. 
          * Only convert /cgi-bin/ into the path to cgidir if the c flag is set.
          */
-        updatePath(&updated_path, newpath, real_cgidir);
+        prefix_root = strdup(real_cgidir);
+        updatePath(&updated_path, newpath+8, real_cgidir);
     } else if ((!isPrefix(newpath, "/~/") && isPrefix(newpath, "/~"))) {
     
         /* Resolve ~user to home directory of that user. */
@@ -213,19 +209,20 @@ checkPath(char* path) {
         homedir[size + 1] = '\0';
         size = strlcat(homedir, "/sws", PATH_MAX - strlen(homedir));
         homedir[size + 1] = '\0';
-        updatePath(&updated_path, newpath, homedir);
+        prefix_root = strdup(homedir);
+        updatePath(&updated_path, newpath+(strlen(part)+1), homedir);
     } else {
         /* No special case, prepend real_docroot. */
         updatePath(&updated_path, newpath, real_docroot);
     }
 
-    if(!isPrefix(real_docroot, updated_path)) {
+    if(!isPrefix(updated_path, prefix_root)) {
         /* Do until prefix match and then add all remaining */
         char* part_docroot;
         char* part_updated_path;
         char *p1, *p2;
 
-        part_docroot = strtok_r(strdup(real_docroot), "/", &p1);
+        part_docroot = strtok_r(strdup(prefix_root), "/", &p1);
         part_updated_path = strtok_r(strdup(updated_path),"/", &p2);
         
         while (part_docroot != NULL && part_updated_path != NULL) {
@@ -238,7 +235,7 @@ checkPath(char* path) {
                     exit(1);
                 } 
                 final_updated_path[0] = '\0';
-                size = strlcat(final_updated_path, real_docroot, PATH_MAX - strlen(final_updated_path));
+                size = strlcat(final_updated_path, prefix_root, PATH_MAX - strlen(final_updated_path));
                 final_updated_path[size + 1] = '\0';
                 size = strlcat(final_updated_path, "/", PATH_MAX - strlen(final_updated_path));
                 final_updated_path[size + 1] = '\0';
@@ -253,16 +250,19 @@ checkPath(char* path) {
     }
 
     char* real_updated;
-    if((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
+    if ((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
         (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
         exit(1);
-    }
-    if (realpath(updated_path, real_updated) == NULL) {
+    } else if (realpath(updated_path, real_updated) == NULL) {
         (void)fprintf(stderr, "realpath of %s: %s\n", updated_path, strerror(errno));
         exit(1);
-    }
-    if (d_FLAG) {
-        (void)printf("The realpath of docroot %s is %s\n", updated_path, real_updated);
+    } else {
+        if(!isPrefix(real_updated, prefix_root)) {
+            real_updated = strdup(prefix_root);
+        }
+        if (d_FLAG) {
+            (void)printf("The realpath of %s is %s\n", updated_path, real_updated);
+        }
     }
     return real_updated;
 }
