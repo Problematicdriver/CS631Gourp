@@ -1,3 +1,6 @@
+#ifndef WRITER_HEADER
+#define WRITER_HEADER
+
 #include <strings.h>
 #include <dirent.h>
 
@@ -21,3 +24,5 @@ void send_response(int client_fd, void *response, size_t length);
 char* r_body(char* path);
 char* file_content(char* path);
 char* dir_content(char* path);
+
+#endif

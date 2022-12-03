@@ -82,7 +82,7 @@ file_content(char* path){
     FILE* fp = fopen(path, "r");
     char buf[BUFSIZ];
 
-    int size = 0, n;
+    int size = 0;
 	char* str = "";
     while (fgets(buf, BUFSIZ, fp) != NULL)
     {
@@ -105,7 +105,7 @@ dir_content(char* path) {
 					path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	int size = 0, n = 0;
+	int size = 0;
 	char* str = "";
 	while ((dirp = readdir(dp)) != NULL) {
 		size += asprintf(&str, "%s%s\n", str,strdup(dirp->d_name));
