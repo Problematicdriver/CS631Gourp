@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 #include "sws.h"
-
+#include "writer.h"
 #define BUFSIZE 1024
 
 void handle_socket(int server_fd);

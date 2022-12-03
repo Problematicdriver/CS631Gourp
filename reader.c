@@ -41,10 +41,7 @@ handle_socket(int server_fd) {
             printf("[reader return]%s\n\n", s);
 
             // Writer: Return a Hello world just for showcase
-            
-            // char response[] = "HTTP/1.0 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
-            // for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
-
+            writer(s, client_fd);
             /* Close the client socket connection */
             close(client_fd);
             exit(1);
@@ -388,6 +385,7 @@ reader(int fd) {
                     printf("Protocol Error\n");
                     return "CHANGE";
                 }
+                /* Yu: Everything went okay if I comment this line */
                 path = checkPath(path);
                 /* Actually serve. */
 
