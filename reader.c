@@ -41,8 +41,9 @@ handle_socket(int server_fd) {
             printf("[reader return]%s\n\n", s);
 
             // Writer: Return a Hello world just for showcase
-            char response[] = "HTTP/1.0 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
-            for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
+            
+            // char response[] = "HTTP/1.0 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";
+            // for (unsigned long sent = 0; sent < sizeof(response); sent += send(client_fd, response+sent, sizeof(response)-sent, 0));
 
             /* Close the client socket connection */
             close(client_fd);
@@ -113,7 +114,10 @@ char valid_headers[][FIELD_SIZE] = {
     "Last-Modified",
     "Server",
     "Content-Type",
-    "Content-Length"
+    "Content-Length",
+    "Host",
+    "User-Agent",
+    "Accept"
 };
 
 header_info*
@@ -142,7 +146,7 @@ getHeaderContent(char *line, header_info *ptr) {
     }
 
     if ((next = malloc(sizeof(header_info))) == NULL) {
-        perror("malloc()");
+        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
     }
 
     strlcpy(next->header, header, FIELD_SIZE);
