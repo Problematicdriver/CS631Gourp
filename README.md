@@ -12,3 +12,5 @@
 3. writer() need implement cgi-bin
 4. writer() need implement sample response for 404, 405, etc.
 ...
+
+[sws.1.pdf](https://github.com/Problematicdriver/CS631Gourp/files/10147162/sws.1.pdf)
