@@ -63,16 +63,24 @@ main(int argc, char** argv) {
         }
     }
 
+    if (h_FLAG) {
+        (void)printf("Usage: %s [ -dh] [ -c dir] [ -i address] [ -l file] [ -p port] dir\n", argv[0]);
+        return EXIT_SUCCESS;
+    }
     if (
-        h_FLAG ||
         (c_FLAG && cgidir==NULL) ||
         (i_FLAG && hostname==NULL) ||
         (l_FLAG && logFile==NULL) ||
         (p_FLAG && port==NULL) ||
         (optind+1 != argc)
     ) {
-        (void)printf("Usage: %s [ −dh] [ −c dir] [ −i address] [ −l file] [ −p port] dir\n", argv[0]);
-        return EXIT_SUCCESS;
+        (void)fprintf(stderr, "Usage: %s [ -dh] [ -c dir] [ -i address] [ -l file] [ -p port] dir\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    if (d_FLAG && l_FLAG) {
+        (void)fprintf(stderr, "Error: -l and -d flags are incompatible.\n");
+        return EXIT_FAILURE;    
     }
 
     if (d_FLAG) {
@@ -165,7 +173,7 @@ main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
     }
-   
+
     int value;
     if ((value = socket_select()) != 0) {
         fflush(stderr);
