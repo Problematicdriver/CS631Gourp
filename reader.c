@@ -124,7 +124,7 @@ getHeaderContent(char *line, header_info *ptr) {
     }
 
     if (i < N_DATE_HEADS && isValidDate(field) != 0) {
-        fprintf(stderr, "Invalid time format\n");
+        (void)fprintf(stderr, "Invalid time format\n");
         return ptr;
     }
 
@@ -179,26 +179,43 @@ checkPath(char* path) {
     char* updated_path;
     int size;
 
-    prefix_root = strdup(real_docroot);
-
+    if ((prefix_root = strdup(real_docroot)) == NULL) {
+        if (d_FLAG) {
+            (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+        }
+        return "500 Internal Server Error";
+    }
 
     if (path[0] != '/') {
         /* Remove schema and hostname from path. */
+
+        // TODO add strdup check but really strdup might not need to be here
         if ((host = strstr(strdup(path), "://")) != NULL) {
             host = (host+3);
         } else {
+        // TODO add strdup check but really strdup might not need to be here
             host = strdup(path);
         }
-        newpath = strstr(strdup(host),"/");
+        // TODO add strdup check but really strdup might not need to be here
+        newpath = strstr(strdup(host), "/");
+        free(host);
     } else {
-        newpath = strdup(path);
+        if ((newpath = strdup(path)) == NULL) {
+            if (d_FLAG) {
+                (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+            }
+            free(prefix_root);
+            return "500 Internal Server Error";
+        }
     }
 
     if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
         if (d_FLAG) {
-            (void)printf("malloc: %s\n", strerror(errno));
+            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
         }
-        exit(1);
+        free(prefix_root);
+        free(newpath);
+        return "500 Internal Server Error";
     } 
     updated_path[0] = '\0';
 
@@ -207,34 +224,60 @@ checkPath(char* path) {
          * /cgi-bin/ can be a valid directory within the docroot. 
          * Only convert /cgi-bin/ into the path to cgidir if the c flag is set.
          */
-        prefix_root = strdup(real_cgidir);
+        free(prefix_root);
+        if ((prefix_root = strdup(real_cgidir)) == NULL) {
+            if (d_FLAG) {
+                (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+            }
+            free(newpath);
+            free(updated_path);
+            return "500 Internal Server Error";
+        }
         updatePath(&updated_path, newpath+8, real_cgidir);
     } else if ((!isPrefix(newpath, "/~/") && isPrefix(newpath, "/~"))) {
-    
         /* Resolve ~user to home directory of that user. */
         char *homedir;
         struct passwd *user;
 
         if ((homedir = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
             if (d_FLAG) {
-                (void)printf("malloc: %s\n", strerror(errno));
+                (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
             }
-            exit(1);
+            free(prefix_root);
+            free(newpath);
+            free(updated_path);
+            return "500 Internal Server Error";
         } 
 
         part = strtok(strdup(newpath), "/");
         if ((user = getpwnam(part+1)) == NULL) {
-            /* error here */
-            fprintf(stderr,"err: %s\n", strerror(errno));
-            exit(1);
+            if (d_FLAG) {
+                (void)fprintf(stderr, "getpwnam: %s\n", strerror(errno));
+            }
+            free(prefix_root);
+            free(newpath);
+            free(homedir);
+            free(updated_path);
+            return "500 Internal Server Error";
         }
     
         size = strlcat(homedir, user->pw_dir, PATH_MAX - strlen(homedir));
         homedir[size + 1] = '\0';
         size = strlcat(homedir, "/sws", PATH_MAX - strlen(homedir));
         homedir[size + 1] = '\0';
-        prefix_root = strdup(homedir);
+
+        free(prefix_root);
+        if ((prefix_root = strdup(homedir)) == NULL) {
+            if (d_FLAG) {
+                (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+            }
+            free(newpath);
+            free(homedir);
+            free(updated_path);
+            return "500 Internal Server Error";
+        }
         updatePath(&updated_path, newpath+(strlen(part)+1), homedir);
+        free(homedir);
     } else {
         /* No special case, prepend real_docroot. */
         updatePath(&updated_path, newpath, real_docroot);
@@ -246,17 +289,24 @@ checkPath(char* path) {
         char* part_updated_path;
         char *p1, *p2;
 
+        // TODO strdup check
         part_docroot = strtok_r(strdup(prefix_root), "/", &p1);
         part_updated_path = strtok_r(strdup(updated_path),"/", &p2);
         
         while (part_docroot != NULL && part_updated_path != NULL) {
-            if(
+            if (
                 (strlen(part_docroot) != strlen(part_updated_path)) || 
                 (strncmp(part_docroot, part_updated_path, strlen(part_docroot)) != 0)
-            ){
+            ) {
                 char* final_updated_path;
                 if ((final_updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
-                    exit(1);
+                    if (d_FLAG) {
+                        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+                    }
+                    free(prefix_root);
+                    free(newpath);
+                    free(updated_path);
+                    return "500 Internal Server Error";
                 } 
                 final_updated_path[0] = '\0';
                 size = strlcat(final_updated_path, prefix_root, PATH_MAX - strlen(final_updated_path));
@@ -265,7 +315,16 @@ checkPath(char* path) {
                 final_updated_path[size + 1] = '\0';
                 size = strlcat(final_updated_path, part_updated_path, PATH_MAX - strlen(final_updated_path));
                 final_updated_path[size + 1] = '\0';
-                updated_path = strdup(final_updated_path);
+                
+                if ((updated_path = strdup(final_updated_path)) == NULL) {
+                    if (d_FLAG) {
+                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                    }
+                    free(prefix_root);
+                    free(newpath);
+                    free(updated_path);
+                    return "500 Internal Server Error";
+                }
                 break;
             }
             part_docroot = strtok_r(NULL, "/", &p1);
@@ -275,14 +334,34 @@ checkPath(char* path) {
 
     char* real_updated;
     if ((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
-        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
-        exit(1);
+        if (d_FLAG) {
+            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+        }
+        free(prefix_root);
+        free(newpath);
+        free(updated_path);
+        return "500 Internal Server Error";
     } else if (realpath(updated_path, real_updated) == NULL) {
-        (void)fprintf(stderr, "realpath of %s: %s\n", updated_path, strerror(errno));
-        exit(1);
+        if (d_FLAG) {
+            (void)fprintf(stderr, "realpath of %s: %s\n", updated_path, strerror(errno));
+        }
+        free(prefix_root);
+        free(newpath);
+        free(updated_path);
+        return "404 Not Found";
     } else {
         if(!isPrefix(real_updated, prefix_root)) {
-            real_updated = strdup(prefix_root);
+            /* 
+             * The client has used a symlink to make it outside the docroot.
+             * This is the case since all other error checking accounts for the 
+             * client leaving the docroot by using /.. within the URI. Client
+             * has accessed a forbidden location.
+             */
+            free(prefix_root);
+            free(newpath);
+            free(updated_path);
+            free(real_updated);
+            return "403 Forbidden";
         }
         if (d_FLAG) {
             (void)printf("The realpath of %s is %s\n", updated_path, real_updated);
@@ -300,14 +379,14 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, char*
         if (d_FLAG) {
             (void)printf("malloc: %s\n", strerror(errno));
         }
-		exit(1);
+        exit(1);
     } 
     sprintf(logging_buffer, "%s %s %s %s %s", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
     if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
-		exit(1);
+        exit(1);
     }
 }
 
@@ -338,44 +417,91 @@ reader(int fd) {
         line = lines[n];
         printf("[%d]%s\n",n+1, line);
         if (n == 0) {
-            /* First line */
-            printf("[First Line]\n");
-            // char *method, *part, *protocol
+            if (d_FLAG) {
+                (void)printf("[First Line]\n");
+            }
             part = strtok(line, " ");
             index = 0;
             while (part != NULL) {
                 if (index == 0) {
-                    method = strdup(part);
+                    if ((method = strndup(part, 5)) == NULL) {
+                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                    }
                 } else if (index == 1) {
-                    path = strdup(part);
+                    if ((path = strdup(part)) == NULL) {
+                        free(method);
+                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                    }
                 } else if (index == 2) {
-                    protocol = strdup(part);
+                    if ((protocol = strdup(part)) == NULL) {
+                        free(method);
+                        free(path);
+                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                    }
                 }
                 index++;
-                printf("\t[%d]%s\n",index, part);
+                if (d_FLAG) {
+                    printf("\t[%d]%s\n", index, part);
+                }
                 part = strtok(NULL, " ");
             }
 
-            // First line should be 3 fields, or it's invalid
-            // method path protocol
+            /* 
+             * First line send by the client should be exactly 3 seperate parts.
+             * These parts should be in the format "METHOD path protocol"
+             */
             if (index != 3) {
                 /* Error here */
+                if (index >= 1) {
+                    free(method);
+                }
+                if (index >= 2) {
+                    free(path);
+                }
+                if (index >= 3) {
+                    free(protocol);
+                }
+                if (d_FLAG) {
+                    (void)printf("400 Bad Request");
+                }
+                return "400 Bad Request";
             } else {
                 if (!checkMethod(method)) {
-                    /* Method was not "GET" or "HEAD" */
+                    /* Method was not "GET" or "HEAD". */
                     if (d_FLAG) {
                         (void)printf("405 Method Not Allowed");
                     }
-                    printf("Mehotd Error\n");
+                    free(method);
+                    free(path);
+                    free(protocol);
                     return "405 Method Not Allowed";
-                } else if (!checkProtocol(protocol)){
-                    printf("Protocol Error\n");
-                    return "CHANGE";
+                } else if (!checkProtocol(protocol)) {
+                    /* Method was not "HTTP/1.0" or "HTTP/0.9". */
+                    if (d_FLAG) {
+                        (void)printf("415 Unsupported Media Type");
+                    }
+                    free(method);
+                    free(path);
+                    free(protocol);
+                    return "415 Unsupported Media Type";
                 }
-                /* Yu: Everything went okay if I comment this line */
-                path = checkPath(path);
-                /* Actually serve. */
-
+                char* updated_path;
+                if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
+                    if (d_FLAG) {
+                            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+                    }
+                    free(method);
+                    free(path);
+                    free(protocol);
+                    return "500 Internal Server Error";
+                } 
+                updated_path = checkPath(path);
+                if (!isPrefix(updated_path, "/")) {
+                    /* checkPath returned an error code; propagate it. */
+                    return updated_path;
+                } else if (d_FLAG) {
+                    (void)printf("The resolved path is: %s\n", updated_path);
+                }
                 
                 /* Logging if l flag is given 
                 if(l_FLAG) {
@@ -385,12 +511,12 @@ reader(int fd) {
                 
             }
         } else {
-            /* (Header) Anything other than First line */
+            /* (Header) Anything other than the first line. */
             ptr = getHeaderContent(line, ptr);
         }
         line = strtok(NULL, "\r\n");
         n++;
     }
     printHeader();
-    return "CHANGE";
+    return "200 OK";
 }
