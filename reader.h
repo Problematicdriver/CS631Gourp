@@ -13,7 +13,9 @@
 #include <fcntl.h>
 
 #include "writer.h"
+
 #define BUFSIZE 1024
+#define FIELD_SIZE 64
 
 typedef struct reader_response {
     char* path;

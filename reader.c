@@ -60,15 +60,14 @@ static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
 static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
 static const char *ansic_date = "%a %B %d %T %Y";
 
-static time_t mtime = 1;
+static time_t mtime;
 
 int
-isValidDate(char *date)
-{
+isValidDate(char *date) {
     struct tm tm;
-    int ret = 0;
+    int ret;
     char *s;
-    memset(&tm, 0, sizeof(tm));
+    (void)memset(&tm, 0, sizeof(tm));
     
     if ((s = strptime(date, rfc1123_date, &tm)) != NULL)
         ret = 1;
@@ -77,21 +76,36 @@ isValidDate(char *date)
     else if ((s = strptime(date, ansic_date, &tm)) != NULL)
         ret = 1;    
     if ((mtime = mktime(&tm)) == -1) {
-        (void)fprintf(stderr, "mktime() %s\n", strerror(errno));
-        return 0;
+        if (d_FLAG) {
+            (void)printf("mktime() %s\n", strerror(errno));
+        }
+        ret = 0;
     }
     return ret;
 }
 
-void
+int
 getHeaderContent(char *line) {
-    char header[64], field[64];
+    char header[FIELD_SIZE], field[FIELD_SIZE];
+    
     if (sscanf(line," %[^: ] : %[^\t]", header, field) < 2) {
-        return;        
+        return 400;
     }
-    if (strcmp(header, "If-Modified-Since") == 0) {
-        (void)isValidDate(field);
-    } 
+
+    if ((strlen(header) > FIELD_SIZE) || (strlen(field) > FIELD_SIZE)) {
+        return 431;
+    }
+
+    if (strncmp(header, "If-Modified-Since", 18) == 0) {
+        if (isValidDate(field) != 1) {
+            if (d_FLAG){
+                (void)printf("Invalid time format in header: %s\n", line);
+            }
+            return 400;
+        }
+    }
+    
+    return 0;
 }
 
 void
@@ -136,7 +150,7 @@ checkPath(char* path) {
 
     if ((prefix_root = strdup(real_docroot)) == NULL) {
         if (d_FLAG) {
-            (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+            (void)printf("strdup: %s\n", strerror(errno));
         }
         return "500 Internal Server Error";
     }
@@ -157,7 +171,7 @@ checkPath(char* path) {
     } else {
         if ((newpath = strdup(path)) == NULL) {
             if (d_FLAG) {
-                (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                (void)printf("strdup: %s\n", strerror(errno));
             }
             free(prefix_root);
             return "500 Internal Server Error";
@@ -166,7 +180,7 @@ checkPath(char* path) {
 
     if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
         if (d_FLAG) {
-            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+            (void)printf("malloc: %s\n", strerror(errno));
         }
         free(prefix_root);
         free(newpath);
@@ -182,7 +196,7 @@ checkPath(char* path) {
         free(prefix_root);
         if ((prefix_root = strdup(real_cgidir)) == NULL) {
             if (d_FLAG) {
-                (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                (void)printf("strdup: %s\n", strerror(errno));
             }
             free(newpath);
             free(updated_path);
@@ -196,7 +210,7 @@ checkPath(char* path) {
 
         if ((homedir = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
             if (d_FLAG) {
-                (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+                (void)printf("malloc: %s\n", strerror(errno));
             }
             free(prefix_root);
             free(newpath);
@@ -207,7 +221,7 @@ checkPath(char* path) {
         part = strtok(strdup(newpath), "/");
         if ((user = getpwnam(part+1)) == NULL) {
             if (d_FLAG) {
-                (void)fprintf(stderr, "getpwnam: %s\n", strerror(errno));
+                (void)printf("getpwnam: %s\n", strerror(errno));
             }
             free(prefix_root);
             free(newpath);
@@ -224,7 +238,7 @@ checkPath(char* path) {
         free(prefix_root);
         if ((prefix_root = strdup(homedir)) == NULL) {
             if (d_FLAG) {
-                (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                (void)printf("strdup: %s\n", strerror(errno));
             }
             free(newpath);
             free(homedir);
@@ -256,7 +270,7 @@ checkPath(char* path) {
                 char* final_updated_path;
                 if ((final_updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
                     if (d_FLAG) {
-                        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+                        (void)printf("malloc: %s\n", strerror(errno));
                     }
                     free(prefix_root);
                     free(newpath);
@@ -273,7 +287,7 @@ checkPath(char* path) {
                 
                 if ((updated_path = strdup(final_updated_path)) == NULL) {
                     if (d_FLAG) {
-                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                        (void)printf("strdup: %s\n", strerror(errno));
                     }
                     free(prefix_root);
                     free(newpath);
@@ -290,7 +304,7 @@ checkPath(char* path) {
     char* real_updated;
     if ((real_updated = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
         if (d_FLAG) {
-            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+            (void)printf("malloc: %s\n", strerror(errno));
         }
         free(prefix_root);
         free(newpath);
@@ -298,7 +312,7 @@ checkPath(char* path) {
         return "500 Internal Server Error";
     } else if (realpath(updated_path, real_updated) == NULL) {
         if (d_FLAG) {
-            (void)fprintf(stderr, "realpath of %s: %s\n", updated_path, strerror(errno));
+            (void)printf("realpath of %s: %s\n", updated_path, strerror(errno));
         }
         free(prefix_root);
         free(newpath);
@@ -347,14 +361,19 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, char*
 
 reader_response
 reader(int fd) {
+    char endChar = 127;
+    char msgEnd[2];
     char buf[BUFSIZE];
     char* method;
     char* part;
     char* path;
     char* protocol;
+    int headerVal;
     int index;
-
     reader_response r_response;
+
+    msgEnd[0] = endChar;
+    msgEnd[1] = '\0';
 
     recv(fd, buf, BUFSIZE, 0);
     int n = 0;
@@ -370,7 +389,10 @@ reader(int fd) {
     n = 0;
     while (lines[n] != NULL) {
         line = lines[n];
-        printf("[%d]%s\n",n+1, line);
+        if (d_FLAG) {
+            (void)printf("[%d]%s\n",n+1, line);
+            printf("%ld\n", strlen(line));
+        }
         if (n == 0) {
             if (d_FLAG) {
                 (void)printf("[First Line]\n");
@@ -380,18 +402,21 @@ reader(int fd) {
             while (part != NULL) {
                 if (index == 0) {
                     if ((method = strndup(part, 5)) == NULL) {
-                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                        (void)printf("strdup: %s\n", strerror(errno));
+                        free(line);
                     }
                 } else if (index == 1) {
                     if ((path = strdup(part)) == NULL) {
+                        free(line);
                         free(method);
-                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                        (void)printf("strdup: %s\n", strerror(errno));
                     }
                 } else if (index == 2) {
                     if ((protocol = strdup(part)) == NULL) {
+                        free(line);
                         free(method);
                         free(path);
-                        (void)fprintf(stderr, "strdup: %s\n", strerror(errno));
+                        (void)printf("strdup: %s\n", strerror(errno));
                     }
                 }
                 index++;
@@ -407,6 +432,7 @@ reader(int fd) {
              */
             if (index != 3) {
                 /* Error here */
+                free(line);
                 if (index >= 1) {
                     free(method);
                 }
@@ -416,9 +442,9 @@ reader(int fd) {
                 if (index >= 3) {
                     free(protocol);
                 }
-                if (d_FLAG)
+                if (d_FLAG) {
                     (void)printf("400 Bad Request");
-                
+                }
                 r_response.path = "";
                 r_response.response = "400 Bad Request";
                 return r_response;
@@ -449,7 +475,7 @@ reader(int fd) {
                 char* updated_path;
                 if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
                     if (d_FLAG) {
-                            (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
+                            (void)printf("malloc: %s\n", strerror(errno));
                     }
                     free(method);
                     free(path);
@@ -477,9 +503,28 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than the first line. */
-            getHeaderContent(line);
+            printf("%d\n", strncmp(line, msgEnd, 1));
+            if (strncmp(line, msgEnd, 1) != 0) {
+                headerVal = getHeaderContent(line);
+                if (headerVal != 0) {
+                    if (headerVal == 400) {
+                        if (d_FLAG) {
+                            (void)printf("400 Bad Request\n");
+                        }
+                        r_response.response = "400 Bad Request";
+                    }
+                    if (headerVal == 431) {
+                        if (d_FLAG) {
+                            (void)printf("431 Request Header Fields Too Large\n");
+                        }
+                        r_response.response = "431 Request Header Fields Too Large";
+                    }
+                    return r_response;
+                }
+            } else {
+                printf("Ignored header\n");
+            }
         }
-        // line = strtok(NULL, "\r\n");
         n++;
     }
     r_response.mtime = mtime;
