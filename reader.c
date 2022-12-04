@@ -362,30 +362,76 @@ checkPath(char* path) {
 
 reader_response
 reader(int fd) {
+    bool done;
     char endChar = 127;
+    char* buf;    
+    char* line;
+    char* lines[1024] = {NULL};
     char msgEnd[2];
-    char buf[BUFSIZE];
     char* method;
     char* part;
     char* path;
     char* protocol;
+    char* s;
     int headerVal;
-    int index;
+    int index;    
+    int n;
+    int newlineIndex;
     reader_response r_response;
+    ssize_t bytes;
 
     msgEnd[0] = endChar;
     msgEnd[1] = '\0';
 
-    recv(fd, buf, BUFSIZE, 0);
-    int n = 0;
-    char* lines[1024] = {NULL};
-    char* line = NULL;
-    line = strtok(buf, "\r\n");
-    /* Read every line into *lines[1024] */
-    while (line != NULL) {
-        lines[n] = strdup(line);
-        n++;
-        line = strtok(NULL, "\r\n");
+    if ((buf = (char *)malloc(sizeof(char)*(BUFSIZE))) == NULL) {
+        if (d_FLAG) {
+                (void)printf("malloc: %s\n", strerror(errno));
+        }
+        r_response.statusCode = 500;
+        r_response.path = "";
+        r_response.response = "Internal Server Error";
+        return r_response;
+    }
+
+    n = 0;
+    done = false;
+    while ((bytes = recv(fd, buf, BUFSIZE, 0)) != 0) {
+        if (bytes < 0) {
+            if (d_FLAG) {
+                (void)printf("recv(): %s\n", strerror(errno));
+            }
+            r_response.statusCode = 500;
+            r_response.path = "";
+            r_response.response = "Internal Server Error";
+            return r_response;
+        }
+        if (bytes != BUFSIZE-1) {
+            buf[bytes] = '\0';
+        } else {
+            buf[BUFSIZE] = '\0';
+        }
+
+        if (isPrefix(buf, "\r") || isPrefix(buf, "\n") || (bytes <= 2)) {
+            done = true;
+            break;
+        }
+        while ((s = strstr(strdup(buf), "\n")) != NULL) {
+            newlineIndex = strlen(buf)-strlen(s);
+            buf[newlineIndex] = '\0';
+            if (buf[newlineIndex-1] == '\r') {
+                buf[newlineIndex-1] = '\0';
+            }
+            lines[n] = strdup(buf);
+            n++;
+            buf = strdup(s+1);
+            if (isPrefix(s+1, "\n") || isPrefix(s+1, "\r"))  {
+                done = true;
+                break;
+            }
+        }
+        if (done) {
+            break;
+        }
     }
     n = 0;
     while (lines[n] != NULL) {
