@@ -7,8 +7,10 @@ static const char *request_date_format = "%FT%TZ";
 
 char valid_status_codes[][FIELD_SIZE] = {
     "200",
+    "304",
     "400",
     "403",
+    "404",
     "405",
     "415",
     "431",

@@ -22,9 +22,9 @@ void writer(reader_response r_response, int client_fd){
         r.content_length,
         r.body);
     char response[size + 1];
-    strlcpy(response, result, sizeof(response));
+    strlcpy(response, result, size+1);
     printf("Response:\n%s\n", response);
-    send_response(client_fd, response, sizeof(response));
+    send_response(client_fd, response, size+1);
     if(l_FLAG && !d_FLAG) {
         logging(r_response.remoteIp, r_response.requestTime, r_response.firstLine, r_response.statusCode, size);
     }
@@ -42,7 +42,7 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int s
         exit(1);
     } 
     sprintf(logging_buffer, "%s %s %s %d %d", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
-    if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
+    if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
@@ -189,7 +189,7 @@ response_content(int code, char* path){
         "",                     // Content-Length
         ""                      // Body
         };
-    
+
     switch (code)
     {
     case 200:
@@ -222,7 +222,7 @@ response_content(int code, char* path){
         r.status_code = "404";
         r.status_message = "Not Found";
         r.body = "404 Not Found";
-
+	
         strcpy(body, "404 Not Found");
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
