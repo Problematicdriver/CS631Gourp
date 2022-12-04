@@ -1,20 +1,5 @@
 #include "reader.h"
 
-bool c_FLAG;
-bool d_FLAG;
-bool h_FLAG;
-bool i_FLAG;
-bool l_FLAG;
-bool p_FLAG;
- 
-char *cgidir;
-char *docroot;
-char *hostname;
-char *port;
-char *real_cgidir;
-char *real_docroot;
-int logFD;
-
 void 
 handle_socket(int server_fd) {
     /* Buffer for storing client request */
@@ -35,6 +20,7 @@ handle_socket(int server_fd) {
         /* Fork one process for one client request */
         if ((childpid = fork()) == 0) {
             close(server_fd);
+            
             char *s;
             // Reader
             s = reader(client_fd);
@@ -194,6 +180,7 @@ checkPath(char* path) {
     int size;
 
     prefix_root = strdup(real_docroot);
+
 
     if (path[0] != '/') {
         /* Remove schema and hostname from path. */
@@ -356,7 +343,6 @@ reader(int fd) {
             // char *method, *part, *protocol
             part = strtok(line, " ");
             index = 0;
-
             while (part != NULL) {
                 if (index == 0) {
                     method = strdup(part);
@@ -369,6 +355,7 @@ reader(int fd) {
                 printf("\t[%d]%s\n",index, part);
                 part = strtok(NULL, " ");
             }
+
             // First line should be 3 fields, or it's invalid
             // method path protocol
             if (index != 3) {

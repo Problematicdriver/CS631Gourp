@@ -10,7 +10,6 @@
 #include <time.h>
 #include <ctype.h>
 
-#include "sws.h"
 #include "writer.h"
 #define BUFSIZE 1024
 

@@ -17,6 +17,7 @@ char *hostname;
 char *port;
 char *real_cgidir;
 char *real_docroot;
+
 int logFD;
 
 int
@@ -80,7 +81,6 @@ main(int argc, char** argv) {
 
     /* Confirm the entered docroot is a valid directory. */
     docroot = argv[argc-1];
-    char* real_docroot;
     if ((real_docroot = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
         (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
         return EXIT_FAILURE;
@@ -105,7 +105,6 @@ main(int argc, char** argv) {
 
     /* Confirm the entered cgidir is a valid directory. */
     if (c_FLAG) {
-        char* real_cgidir;
         if ((real_cgidir = (char *)malloc(sizeof(char)*PATH_MAX)) == NULL) {
             (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
             return EXIT_FAILURE;
@@ -166,7 +165,7 @@ main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
     }
-    
+   
     int value;
     if ((value = socket_select()) != 0) {
         fflush(stderr);
