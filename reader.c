@@ -21,13 +21,13 @@ handle_socket(int server_fd) {
         if ((childpid = fork()) == 0) {
             close(server_fd);
             
-            char *s;
+            reader_response r_response;
             // Reader
-            s = reader(client_fd);
-            printf("[reader return]%s\n\n", s);
+            r_response = reader(client_fd);
+            printf("[reader return]%s\n\n", r_response.response);
 
             // Writer: Return a Hello world just for showcase
-            writer(s, client_fd);
+            writer(r_response.response, client_fd, r_response.path);
             /* Close the client socket connection */
             close(client_fd);
             exit(1);
@@ -390,7 +390,7 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, char*
     }
 }
 
-char *
+reader_response
 reader(int fd) {
     char buf[BUFSIZE];
     char* method;
@@ -400,6 +400,7 @@ reader(int fd) {
     int index;
 
     header_info *ptr = &head;
+    reader_response r_response;
 
     recv(fd, buf, BUFSIZE, 0);
     int n = 0;
@@ -463,8 +464,10 @@ reader(int fd) {
                 }
                 if (d_FLAG) {
                     (void)printf("400 Bad Request");
-                }
-                return "400 Bad Request";
+                
+                r_response.path = "";
+                r_response.response = "400 Bad Request";
+                return r_response;
             } else {
                 if (!checkMethod(method)) {
                     /* Method was not "GET" or "HEAD". */
@@ -474,7 +477,9 @@ reader(int fd) {
                     free(method);
                     free(path);
                     free(protocol);
-                    return "405 Method Not Allowed";
+                    r_response.path = "";
+                    r_response.response = "405 Method Not Allowed";
+                    return r_response;
                 } else if (!checkProtocol(protocol)) {
                     /* Method was not "HTTP/1.0" or "HTTP/0.9". */
                     if (d_FLAG) {
@@ -483,7 +488,9 @@ reader(int fd) {
                     free(method);
                     free(path);
                     free(protocol);
-                    return "415 Unsupported Media Type";
+                    r_response.path = "";
+                    r_response.response = "415 Unsupported Media Type";
+                    return r_response;
                 }
                 char* updated_path;
                 if ((updated_path = (char *)malloc(sizeof(char)*(PATH_MAX+1))) == NULL) {
@@ -493,16 +500,20 @@ reader(int fd) {
                     free(method);
                     free(path);
                     free(protocol);
-                    return "500 Internal Server Error";
+                    r_response.path = "";
+                    r_response.response = "500 Internal Server Error";
+                    return r_response;
                 } 
                 updated_path = checkPath(path);
                 if (!isPrefix(updated_path, "/")) {
                     /* checkPath returned an error code; propagate it. */
-                    return updated_path;
+                    r_response.path = "";
+                    r_response.response = updated_path;
+                    return r_response;
                 } else if (d_FLAG) {
                     (void)printf("The resolved path is: %s\n", updated_path);
                 }
-                
+                path = strdup(updated_path);
                 /* Logging if l flag is given 
                 if(l_FLAG) {
                     logging(method, path, protocol, response);
@@ -518,5 +529,7 @@ reader(int fd) {
         n++;
     }
     printHeader();
-    return "200 OK";
+    r_response.path = path;
+    r_response.response = "200 OK";
+    return r_response;
 }

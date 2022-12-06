@@ -19,7 +19,7 @@ typedef struct response
     char* body;
 } repsonse;
 
-void writer(char* err, int client_fd);
+void writer(char* err, int client_fd, char* path);
 void send_response(int client_fd, void *response, size_t length);
 char* r_body(char* path);
 char* file_content(char* path);
