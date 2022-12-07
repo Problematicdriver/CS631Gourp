@@ -109,7 +109,7 @@ getHeaderContent(char *line, header_info *ptr) {
     char header[FIELD_SIZE], field[FIELD_SIZE];
     size_t i;
 
-    if (sscanf(line," %[^: ] : %[^\t]", header, field) < 2) {
+    if (sscanf(line," %[^: ]+ : %[^\t]+", header, field) < 2) {
         return ptr;
     }
 
@@ -462,7 +462,7 @@ reader(int fd) {
                 if (index >= 3) {
                     free(protocol);
                 }
-                if (d_FLAG) {
+                if (d_FLAG)
                     (void)printf("400 Bad Request");
                 
                 r_response.path = "";
@@ -525,7 +525,7 @@ reader(int fd) {
             /* (Header) Anything other than the first line. */
             ptr = getHeaderContent(line, ptr);
         }
-        line = strtok(NULL, "\r\n");
+        // line = strtok(NULL, "\r\n");
         n++;
     }
     printHeader();
