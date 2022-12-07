@@ -1,6 +1,6 @@
 #include "writer.h"
 
-void writer(char* err, int client_fd){
+void writer(char* err, int client_fd, char* path){
 
     /* Determine what to response based on what reader() return */
     printf("reader(): %s\n", err);
@@ -16,7 +16,7 @@ void writer(char* err, int client_fd){
         "Content-Length: Later",
         "body-> Hello World!"
         };
-    printf("[/etc/passwd]:\n%s\n",r_body("/etc/passwd"));
+    printf("[/etc/passwd]:\n%s\n",r_body(path));
     // r_body = body;
     /* Send the http response */
     char* result;
