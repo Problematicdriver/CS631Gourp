@@ -1,11 +1,11 @@
 CC=cc
-CFLAGS=-Wall -Werror -Wextra -g
+CFLAGS=-Wall -g -Werror -Wextra
 
 default: sws
 all: default
 
 sws: socket.o sws.o reader.o writer.o
-	$(CC) $(CFLAGS) -o sws sws.o socket.o reader.o writer.o -lm
+	$(CC) $(CFLAGS) -lmagic -o sws sws.o socket.o reader.o writer.o -lm
 
 *.o: *.c *.h
 	$(CC) $(CFLAGS) -c *.c

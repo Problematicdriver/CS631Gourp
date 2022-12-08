@@ -3,6 +3,7 @@
 
 #include <strings.h>
 #include <dirent.h>
+#include <magic.h>
 
 #include "sws.h"
 
