@@ -1,66 +1,22 @@
 #include "writer.h"
 
-char* get_last_modified(char *path);
-char* get_date();
-char* get_content_type(char *path);
-
 void writer(reader_response r_response, int client_fd){
 
     /* Determine what to response based on what reader() return */
     printf("reader(): %s\n", r_response.response);
 
     /* Initialize the http response */
-    struct response r = {
-        "HTTP/1.0",
-        "200","OK",
-        "Date: Later",
-        "Server: Later",
-        "Last-Modified: Later",
-        "Content-Type: Later",
-        "Content-Length: Later",
-        "body-> Hello World!"
-    };
+    struct response r = response_content(r_response.statusCode, r_response.path);
 
-    /* filling in reponse */
-    char header[128], *head_content;
-    if ((head_content = get_date()) == NULL) {
-        // error status
-        printf("get_date()\n");
-    }
-    if (snprintf(header, 128, "Date: %s", head_content) < 0) {
-        printf("hahahhahahhahhah)\n");
-        fprintf(stderr, "sprintf %s\n", strerror(errno));
-    }
-    printf("%s\n", header);
-    r.date = header;
-
-    if ((head_content = get_last_modified(r_response.path)) == NULL) {
-        // error status
-    }
-    if (snprintf(header, 128, "Last-Modified: %s", head_content) < 0) {
-        fprintf(stderr, "sprintf %s\n", strerror(errno));
-    }
-    r.last_modified = header;
-    
-    if ((head_content = get_content_type(r_response.path)) == NULL) {
-        // error status
-    }
-    if (snprintf(header, 128, "Content-Type: %s", head_content) < 0) {
-        fprintf(stderr, "sprintf %s\n", strerror(errno));
-    }
-    r.content_type = header;
-
-    printf("[/etc/passwd]:\n%s\n",r_body(r_response.path));
-    // r_body = body;
     /* Send the http response */
     char* result;
-    int size = asprintf(&result, "%s %s %s\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n\r\n%s",
+    // Last-Modified not print now just for debugging
+    int size = asprintf(&result, "%s %s %s\r\n%s\r\n%s\r\n%s\r\n%s\r\n\r\n%s\r\n\r\n",
         r.http_version, 
         r.status_code,
         r.status_message,
         r.date,
         r.server,
-        r.last_modified,
         r.content_type,
         r.content_length,
         r.body);
@@ -84,8 +40,8 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int s
         }
         exit(1);
     } 
-    sprintf(logging_buffer, "%s %s %s %d %d\n", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
-    if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
+    sprintf(logging_buffer, "%s %s %s %d %d", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
+    if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
@@ -176,6 +132,145 @@ dir_content(char* path) {
 }
 
 char*
+cgi_content(char* path){
+
+    FILE *fp;
+    char buf[BUFSIZ];
+    /* Construct command "/bin/sh [filename]"*/
+    char *command = "/bin/sh";
+    asprintf(&command, "%s %s", command, path);
+    // printf("command:%s\n", command);
+
+    /* Open the command for reading. */
+    fp = popen(path, "r");
+    if (fp == NULL) {
+        printf("Failed to run command\n" );
+        exit(1);
+    }
+
+    int size = 0;
+	char* str = "";
+    /* str recieve cgi-bin's output  */
+    while (fgets(buf, BUFSIZ, fp) != NULL) {
+        size += asprintf(&str, "%s%s\n", str, buf);
+    }
+
+    /* close */
+    pclose(fp);
+
+    /* malloc and return the output */
+	printf("Size: %d\n", size);
+    char* r = malloc(sizeof(char) * size);
+    strlcpy(r, str, size);
+    printf("r:\n%s\n", r);
+	return r;
+}
+
+struct response
+response_content(int code, char* path){
+    /* Prepare for date */
+    char body[BUFSIZ];
+    char *content_length = "Content-Length:";
+    char *content_type = "Content-Type:";
+    char *date = "Date:";
+    
+    asprintf(&date, "%s %s", date, get_time());
+
+
+    struct response r = {
+        "HTTP/1.0",
+        "","",                  // 200, OK
+        date,                     // date
+        "Server: sws",          
+        "",                     // Last-Modified
+        "",                     // Content-Type
+        "",                     // Content-Length
+        ""                      // Body
+        };
+    
+    switch (code)
+    {
+    case 200:
+        
+        // Content-Type
+        // Last-Modified   
+        r.status_code = "200";
+        r.status_message = "OK";
+        r.body = r_body(path);
+        r.last_modified = get_last_modified(path);
+
+        asprintf(&content_length, "%s %ld", content_length, strlen(r.body));
+        r.content_length = content_length;
+        asprintf(&content_type, "%s %s", content_type, get_type(path));
+        r.content_type = content_type;
+
+        break;
+    case 400:
+        r.status_code = "400";
+        r.status_message = "Bad Request";
+        r.body = "400 Bad Request";
+
+        strcpy(body, "400 Bad Request");
+        asprintf(&content_length, "%s %ld", content_length, strlen(body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: :text/html";
+        break;
+    case 404:
+        r.status_code = "404";
+        r.status_message = "Not Found";
+        r.body = "404 Not Found";
+
+        strcpy(body, "404 Not Found");
+        asprintf(&content_length, "%s %ld", content_length, strlen(body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: text/html";
+        break;
+    case 405:
+        r.status_code = "405";
+        r.status_message = "Method Not Allowed";
+        r.body = "405 Method Not Allowed";
+
+        strcpy(body, "405 Method Not Allowed");
+
+        asprintf(&content_length, "%s %ld", content_length, strlen(body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: text/html";
+        break;
+    case 415:
+        r.status_code = "415";
+        r.status_message = "Unsupported Media Type";
+        r.body = "415 Unsupported Media Type";
+
+        strcpy(body, "415 Unsupported Media Type");
+        asprintf(&content_length, "%s %ld", content_length, strlen(body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: text/html";
+        break;
+    case 500:
+        r.status_code = "500";
+        r.status_message = "Internal Server Error";
+        r.body = "500 Internal Server Error";
+
+        strcpy(body, "500 Internal Server Error");
+        asprintf(&content_length, "%s %ld", content_length, strlen(body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: text/html";
+        break;
+    default:
+        r.status_code = "503";
+        r.status_message = "Service Unavailable";
+        r.body = "503 Service Unavailable";
+
+        strcpy(body, "503 Service Unavailable");
+        asprintf(&content_length, "%s %ld", content_length, strlen(body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: text/html";
+        break;
+    }
+    return r;
+}
+
+char*
 get_last_modified(char *path)
 {
     struct stat sb;
@@ -191,7 +286,7 @@ get_last_modified(char *path)
 }
 
 char*
-get_date() {
+get_time() {
     time_t now;
     char *s;
     if ((now = time(0)) == (time_t)-1) {
@@ -200,11 +295,13 @@ get_date() {
     if ((s = (asctime(gmtime(&now)))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
     }
+    int len = strlen(s);
+    s[len-1] = '\0';
     return s;
 }
 
 char*
-get_content_type(char *path) {
+get_type(char *path) {
     const char *mime;
     magic_t magic;
     if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
