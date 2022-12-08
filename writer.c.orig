@@ -1,10 +1,14 @@
 #include "writer.h"
 
+<<<<<<< HEAD
 char* get_last_modified(char *path);
 char* get_date();
 char* get_content_type(char *path);
 
+void writer(char* err, int client_fd, char* path){
+=======
 void writer(reader_response r_response, int client_fd){
+>>>>>>> 8856d77be498216d31355031ee907af48232ecad
 
     /* Determine what to response based on what reader() return */
     printf("reader(): %s\n", r_response.response);
@@ -19,6 +23,7 @@ void writer(reader_response r_response, int client_fd){
         "Content-Type: Later",
         "Content-Length: Later",
         "body-> Hello World!"
+<<<<<<< HEAD
     };
 
     /* filling in reponse */
@@ -48,7 +53,11 @@ void writer(reader_response r_response, int client_fd){
     r.content_type = header;
 
 
+    printf("[/etc/passwd]:\n%s\n",r_body(path));
+=======
+        };
     printf("[/etc/passwd]:\n%s\n",r_body(r_response.path));
+>>>>>>> 8856d77be498216d31355031ee907af48232ecad
     // r_body = body;
     /* Send the http response */
     char* result;

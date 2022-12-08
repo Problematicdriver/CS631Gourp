@@ -20,10 +20,21 @@ typedef struct response
     char* body;
 } repsonse;
 
-void writer(char* err, int client_fd, char* path);
+typedef struct reader_response {
+    char* path;
+    char* firstLine;
+    int statusCode;
+    char* response;
+    time_t mtime;
+    char* requestTime;
+    char* remoteIp;
+} reader_response;
+
+void writer(reader_response r_response, int client_fd);
 void send_response(int client_fd, void *response, size_t length);
 char* r_body(char* path);
 char* file_content(char* path);
 char* dir_content(char* path);
+void logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status, int responseSize);
 
 #endif

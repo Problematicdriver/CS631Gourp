@@ -1,33 +1,58 @@
 #include "reader.h"
 
+static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
+static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
+static const char *ansic_date = "%a %B %d %T %Y";
+static const char *request_date_format = "%FT%TZ";
+
+char valid_status_codes[][FIELD_SIZE] = {
+    "200",
+    "400",
+    "403",
+    "405",
+    "415",
+    "431",
+    "500"
+};
+
 void 
 handle_socket(int server_fd) {
     /* Buffer for storing client request */
     int client_fd, childpid;
     for (;;) {
-        // struct sockaddr_in cliAddr;
-        // socklen_t cliAddr_size;
+        struct sockaddr_in cliAddr;
+        socklen_t cliAddr_size;
         
         /* Recieve client request */
-        // int client_fd = accept(server_fd, (struct sockaddr*)&cliAddr, &cliAddr_size);
-        client_fd = accept(server_fd, NULL, NULL);
+        client_fd = accept(server_fd, (struct sockaddr*)&cliAddr, &cliAddr_size);
+        // client_fd = accept(server_fd, NULL, NULL);
         if (client_fd < 0) {
             continue;
         }
-        //printf("Connection accepted from %s:%d\n\n", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
+
+        char* remoteIp = (char *)malloc(sizeof(char)*BUFSIZ);
+        sprintf(remoteIp, "%s:%d", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
         //printf("Connection accepted");
         
         /* Fork one process for one client request */
         if ((childpid = fork()) == 0) {
             close(server_fd);
-            
+            //Find the time and store
+
+            time_t currentTime;
+            char requestTime[100]; 
+            struct tm *tm;                                                                                                                       
+            currentTime = time(NULL);                                                              
+            tm = localtime(&currentTime);      
+            strftime(requestTime, sizeof(requestTime), request_date_format, tm);
+
             reader_response r_response;
             // Reader
             r_response = reader(client_fd);
-            printf("[reader return]%s\n\n", r_response.response);
-
+            r_response.requestTime = requestTime;
+            r_response.remoteIp = remoteIp;
             // Writer: Return a Hello world just for showcase
-            writer(r_response.response, client_fd, r_response.path);
+            writer(r_response, client_fd);
             /* Close the client socket connection */
             close(client_fd);
             exit(1);
@@ -55,10 +80,6 @@ bool
 isPrefix(char* string, char* prefix) {
     return strncmp(string, prefix, strlen(prefix)) == 0;
 }
-
-static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
-static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
-static const char *ansic_date = "%a %B %d %T %Y";
 
 static time_t mtime;
 
@@ -339,26 +360,6 @@ checkPath(char* path) {
     return real_updated;
 }
 
-void
-logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, char* status, char* responseSize) {
-    char* logging_buffer;
-    int n;
-
-    if ((logging_buffer = (char *)malloc(sizeof(char)*BUFSIZE)) == NULL) {
-        if (d_FLAG) {
-            (void)printf("malloc: %s\n", strerror(errno));
-        }
-        exit(1);
-    } 
-    sprintf(logging_buffer, "%s %s %s %s %s", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
-    if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
-        if (d_FLAG) {
-            (void)printf("Error while logging into file: %s\n", strerror(errno));
-        }
-        exit(1);
-    }
-}
-
 reader_response
 reader(int fd) {
     char endChar = 127;
@@ -394,6 +395,7 @@ reader(int fd) {
             printf("%ld\n", strlen(line));
         }
         if (n == 0) {
+            r_response.firstLine = strdup(line);
             if (d_FLAG) {
                 (void)printf("[First Line]\n");
             }
@@ -445,8 +447,9 @@ reader(int fd) {
                 if (d_FLAG) {
                     (void)printf("400 Bad Request");
                 }
+                r_response.statusCode = 400;
                 r_response.path = "";
-                r_response.response = "400 Bad Request";
+                r_response.response = "Bad Request";
                 return r_response;
             } else {
                 if (!checkMethod(method)) {
@@ -457,8 +460,9 @@ reader(int fd) {
                     free(method);
                     free(path);
                     free(protocol);
+                    r_response.statusCode = 405;
                     r_response.path = "";
-                    r_response.response = "405 Method Not Allowed";
+                    r_response.response = "Method Not Allowed";
                     return r_response;
                 } else if (!checkProtocol(protocol)) {
                     /* Method was not "HTTP/1.0" or "HTTP/0.9". */
@@ -468,8 +472,9 @@ reader(int fd) {
                     free(method);
                     free(path);
                     free(protocol);
+                    r_response.statusCode = 415;
                     r_response.path = "";
-                    r_response.response = "415 Unsupported Media Type";
+                    r_response.response = "Unsupported Media Type";
                     return r_response;
                 }
                 char* updated_path;
@@ -480,26 +485,31 @@ reader(int fd) {
                     free(method);
                     free(path);
                     free(protocol);
+                    r_response.statusCode = 500;
                     r_response.path = "";
-                    r_response.response = "500 Internal Server Error";
+                    r_response.response = "Internal Server Error";
                     return r_response;
                 } 
                 updated_path = checkPath(path);
                 if (!isPrefix(updated_path, "/")) {
                     /* checkPath returned an error code; propagate it. */
+                    unsigned long i;
+                    for (i = 0; i < sizeof(valid_status_codes) / FIELD_SIZE; i++) {
+                        if (isPrefix(updated_path, valid_status_codes[i])) {
+                            r_response.statusCode = atoi(valid_status_codes[i]);
+                            r_response.path = "";
+                            r_response.response = updated_path;
+                            return r_response;
+                        }
+                    }
+                    r_response.statusCode = 500;
                     r_response.path = "";
                     r_response.response = updated_path;
                     return r_response;
                 } else if (d_FLAG) {
                     (void)printf("The resolved path is: %s\n", updated_path);
                 }
-                path = strdup(updated_path);
-                /* Logging if l flag is given 
-                if(l_FLAG) {
-                    logging(method, path, protocol, response);
-                }
-                */
-                
+                path = strdup(updated_path);                
             }
         } else {
             /* (Header) Anything other than the first line. */
@@ -511,13 +521,17 @@ reader(int fd) {
                         if (d_FLAG) {
                             (void)printf("400 Bad Request\n");
                         }
-                        r_response.response = "400 Bad Request";
+                        r_response.statusCode = 400;
+                        r_response.path = "";
+                        r_response.response = "Bad Request";
                     }
                     if (headerVal == 431) {
                         if (d_FLAG) {
                             (void)printf("431 Request Header Fields Too Large\n");
                         }
-                        r_response.response = "431 Request Header Fields Too Large";
+                        r_response.statusCode = 431;
+                        r_response.path = "";
+                        r_response.response = "Request Header Fields Too Large";
                     }
                     return r_response;
                 }
@@ -527,8 +541,9 @@ reader(int fd) {
         }
         n++;
     }
+    r_response.statusCode = 200;
     r_response.mtime = mtime;
     r_response.path = path;
-    r_response.response = "200 OK";
+    r_response.response = "OK";
     return r_response;
 }
