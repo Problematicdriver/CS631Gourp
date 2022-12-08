@@ -135,26 +135,23 @@ dir_content(char* path) {
 	return r;
 }
 
-char*
-cgi_content(char* path){
+char* cgi_content(char* filepath){
 
     FILE *fp;
     char buf[BUFSIZ];
-    /* Construct command "/bin/sh [filename]"*/
-    char *command = "/bin/sh";
-    asprintf(&command, "%s %s", command, path);
-    // printf("command:%s\n", command);
-
+    char *path = "/bin/sh";
+    char *filename = filepath;
+    asprintf(&path, "%s %s", path, filename);
     /* Open the command for reading. */
     fp = popen(path, "r");
     if (fp == NULL) {
-        printf("Failed to run command\n" );
-        exit(1);
+    printf("Failed to run command\n" );
+    exit(1);
     }
 
     int size = 0;
 	char* str = "";
-    /* str recieve cgi-bin's output  */
+    /* Read the output a line at a time - output it. */
     while (fgets(buf, BUFSIZ, fp) != NULL) {
         size += asprintf(&str, "%s%s\n", str, buf);
     }
@@ -162,12 +159,9 @@ cgi_content(char* path){
     /* close */
     pclose(fp);
 
-    /* malloc and return the output */
-	printf("Size: %d\n", size);
     char* r = malloc(sizeof(char) * size);
     strlcpy(r, str, size);
-    printf("r:\n%s\n", r);
-	return r;
+    return r;
 }
 
 struct response
