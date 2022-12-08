@@ -17,12 +17,6 @@
 #define BUFSIZE 1024
 #define FIELD_SIZE 64
 
-typedef struct reader_response {
-    char* path;
-    char* response;
-    time_t mtime;
-} reader_response;
-
 void handle_socket(int server_fd);
 bool checkProtocol(char* protocol);
 bool checkMethod(char* method);
