@@ -513,7 +513,7 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than the first line. */
-            printf("%d\n", strncmp(line, msgEnd, 1));
+            //printf("%d\n", strncmp(line, msgEnd, 1));
             if (strncmp(line, msgEnd, 1) != 0) {
                 headerVal = getHeaderContent(line);
                 if (headerVal != 0) {

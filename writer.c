@@ -24,14 +24,17 @@ void writer(reader_response r_response, int client_fd){
     /* filling in reponse */
     char header[128], *head_content;
     if ((head_content = get_date()) == NULL) {
-        // error status   
+        // error status
+        printf("get_date()\n");
     }
     if (snprintf(header, 128, "Date: %s", head_content) < 0) {
+        printf("hahahhahahhahhah)\n");
         fprintf(stderr, "sprintf %s\n", strerror(errno));
     }
+    printf("%s\n", header);
     r.date = header;
 
-    if ((head_content = get_last_modified(path)) == NULL) {
+    if ((head_content = get_last_modified(r_response.path)) == NULL) {
         // error status
     }
     if (snprintf(header, 128, "Last-Modified: %s", head_content) < 0) {
@@ -39,14 +42,13 @@ void writer(reader_response r_response, int client_fd){
     }
     r.last_modified = header;
     
-    if ((head_content = get_content_type(path)) == NULL) {
+    if ((head_content = get_content_type(r_response.path)) == NULL) {
         // error status
     }
     if (snprintf(header, 128, "Content-Type: %s", head_content) < 0) {
         fprintf(stderr, "sprintf %s\n", strerror(errno));
     }
     r.content_type = header;
-
 
     printf("[/etc/passwd]:\n%s\n",r_body(r_response.path));
     // r_body = body;
@@ -190,12 +192,12 @@ get_last_modified(char *path)
 
 char*
 get_date() {
-    time_t current_time;
+    time_t now;
     char *s;
-    if (time(&current_time) == ((time_t)-1)) {
-        fprintf(stderr, "time() %s\n", strerror(errno));
+    if ((now = time(0)) == (time_t)-1) {
+        fprintf(stderr, "time() %s\n",  strerror(errno));
     }
-    if ((s = (asctime(gmtime(&current_time)))) == NULL) {
+    if ((s = (asctime(gmtime(&now)))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
     }
     return s;
@@ -205,14 +207,15 @@ char*
 get_content_type(char *path) {
     const char *mime;
     magic_t magic;
-
-    magic = magic_open(MAGIC_MIME_TYPE); 
-    magic_load(magic, NULL);
-    magic_compile(magic, NULL);
-    mime = magic_file(magic, path);
-
-    printf("%s\n", mime);
+    if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
+        fprintf(stderr, "magic_open() %s\n", strerror(errno));
+    } 
+    if (magic_load(magic, NULL) < 0) {
+        fprintf(stderr, "magic_load() %s\n", strerror(errno));
+    }
+    if ((mime = magic_file(magic, path)) == NULL) {
+        fprintf(stderr, "magic_file() %s\n", strerror(errno));
+    }
     magic_close(magic);
-
     return strdup(mime);
 }
