@@ -77,30 +77,40 @@ static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
 static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
 static const char *ansic_date = "%a %B %d %T %Y";
 
+static time_t mtime;
+
 int
 isValidDate(char *date)
 {
     struct tm tm;
+    int ret = 0;
+    char *s;
     memset(&tm, 0, sizeof(tm));
-    if (strptime(date, rfc1123_date, &tm) != NULL)
+    
+    if ((s = strptime(date, rfc1123_date, &tm)) != NULL)
+        ret = 1;
+    else if ((s = strptime(date, rfc850_date, &tm)) != NULL)
+        ret = 1;
+    else if ((s = strptime(date, ansic_date, &tm)) != NULL)
+        ret = 1;    
+    if ((mtime = mktime(&tm)) == -1) {
+        (void)fprintf(stderr, "mktime() %s\n", strerror(errno));
         return 0;
-    if (strptime(date, rfc850_date, &tm) != NULL)
-        return 0;
-    if (strptime(date, ansic_date, &tm) != NULL)
-        return 0;
-    return 1;
+    }
+    return ret;
 }
- 
-#define N_DATE_HEADS 2
+
+#define N_DATE_HEADS 1
 char valid_headers[][FIELD_SIZE] = {
-    "Date",
-    "Last-Modified",
-    "Server",
-    "Content-Type",
-    "Content-Length",
-    "Host",
-    "User-Agent",
-    "Accept"
+    // "Date",
+    // "Last-Modified",
+    // "Server",
+    // "Content-Type",
+    // "Content-Length",
+    // "Host",
+    // "User-Agent",
+    // "Accept",
+    "If-Modified-Since"
 };
 
 header_info*
@@ -108,8 +118,8 @@ getHeaderContent(char *line, header_info *ptr) {
     header_info *next;
     char header[FIELD_SIZE], field[FIELD_SIZE];
     size_t i;
-
-    if (sscanf(line," %[^: ]+ : %[^\t]+", header, field) < 2) {
+    
+    if (sscanf(line," %[^: ] : %[^\t]", header, field) < 2) {
         return ptr;
     }
 
@@ -118,7 +128,6 @@ getHeaderContent(char *line, header_info *ptr) {
             break;
         }
     }
-
     if (i == sizeof(valid_headers) / FIELD_SIZE) {
         return ptr;
     }
@@ -127,7 +136,6 @@ getHeaderContent(char *line, header_info *ptr) {
         (void)fprintf(stderr, "Invalid time format\n");
         return ptr;
     }
-
     if ((next = malloc(sizeof(header_info))) == NULL) {
         (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
     }
@@ -528,7 +536,7 @@ reader(int fd) {
         // line = strtok(NULL, "\r\n");
         n++;
     }
-    printHeader();
+    r_response.mtime = mtime;
     r_response.path = path;
     r_response.response = "200 OK";
     return r_response;

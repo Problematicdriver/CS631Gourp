@@ -1,7 +1,7 @@
 #include "socket.h"
 #include "reader.h"
 
-#define TIMEOUT 3
+#define TIMEOUT 10
 #define BACKLOG 128
 #define DBG_BACKLOG 1
 
