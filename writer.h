@@ -28,7 +28,7 @@ typedef struct reader_response {
     time_t mtime;
     char* requestTime;
     char* remoteIp;
-    bool cig;
+    bool cgi;
 } reader_response;
 
 void writer(reader_response r_response, int client_fd);
