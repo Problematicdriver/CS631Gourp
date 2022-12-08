@@ -1,9 +1,9 @@
 #include "writer.h"
 
-void writer(char* err, int client_fd, char* path){
+void writer(reader_response r_response, int client_fd){
 
     /* Determine what to response based on what reader() return */
-    printf("reader(): %s\n", err);
+    printf("reader(): %s\n", r_response.response);
 
     /* Initialize the http response */
     struct response r = {
@@ -16,7 +16,7 @@ void writer(char* err, int client_fd, char* path){
         "Content-Length: Later",
         "body-> Hello World!"
         };
-    printf("[/etc/passwd]:\n%s\n",r_body(path));
+    printf("[/etc/passwd]:\n%s\n",r_body(r_response.path));
     // r_body = body;
     /* Send the http response */
     char* result;
@@ -34,7 +34,29 @@ void writer(char* err, int client_fd, char* path){
     strlcpy(response, result, sizeof(response));
     printf("Response:\n%s\n", response);
     send_response(client_fd, response, sizeof(response));
+    if(l_FLAG && !d_FLAG) {
+        logging(r_response.remoteIp, r_response.requestTime, r_response.firstLine, r_response.statusCode, size);
+    }
+}
 
+void
+logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status, int responseSize) {
+    char* logging_buffer;
+    int n;
+
+    if ((logging_buffer = (char *)malloc(sizeof(char)*BUFSIZ)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+        exit(1);
+    } 
+    sprintf(logging_buffer, "%s %s %s %d %d", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
+    if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
+        if (d_FLAG) {
+            (void)printf("Error while logging into file: %s\n", strerror(errno));
+        }
+        exit(1);
+    }
 }
 
 void send_response(int client_fd, void *response, size_t length)
