@@ -84,8 +84,8 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int s
         }
         exit(1);
     } 
-    sprintf(logging_buffer, "%s %s %s %d %d", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
-    if((n = write(logFD, logging_buffer, sizeof(logging_buffer))) == -1){
+    sprintf(logging_buffer, "%s %s %s %d %d\n", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
+    if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
