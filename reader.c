@@ -56,28 +56,11 @@ isPrefix(char* string, char* prefix) {
     return strncmp(string, prefix, strlen(prefix)) == 0;
 }
 
-#define FIELD_SIZE 64
-typedef struct header_info {
-    char header[FIELD_SIZE];
-    char field[FIELD_SIZE];
-    struct header_info *next;
-} header_info;
-
-header_info head;
-
-void
-printHeader() {
-    header_info *ptr;
-    for (ptr = head.next; ptr != NULL; ptr = ptr->next) {
-        printf("%s: %s\n", ptr->header, ptr->field);
-    }
-}
-
 static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
 static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
 static const char *ansic_date = "%a %B %d %T %Y";
 
-static time_t mtime;
+static time_t mtime = 1;
 
 int
 isValidDate(char *date)
@@ -100,51 +83,15 @@ isValidDate(char *date)
     return ret;
 }
 
-#define N_DATE_HEADS 1
-char valid_headers[][FIELD_SIZE] = {
-    // "Date",
-    // "Last-Modified",
-    // "Server",
-    // "Content-Type",
-    // "Content-Length",
-    // "Host",
-    // "User-Agent",
-    // "Accept",
-    "If-Modified-Since"
-};
-
-header_info*
-getHeaderContent(char *line, header_info *ptr) {
-    header_info *next;
-    char header[FIELD_SIZE], field[FIELD_SIZE];
-    size_t i;
-    
+void
+getHeaderContent(char *line) {
+    char header[64], field[64];
     if (sscanf(line," %[^: ] : %[^\t]", header, field) < 2) {
-        return ptr;
+        return;        
     }
-
-    for (i = 0; i < sizeof(valid_headers) / FIELD_SIZE; i++) {
-        if (strcmp(header, valid_headers[i]) == 0) {
-            break;
-        }
-    }
-    if (i == sizeof(valid_headers) / FIELD_SIZE) {
-        return ptr;
-    }
-
-    if (i < N_DATE_HEADS && isValidDate(field) != 0) {
-        (void)fprintf(stderr, "Invalid time format\n");
-        return ptr;
-    }
-    if ((next = malloc(sizeof(header_info))) == NULL) {
-        (void)fprintf(stderr, "malloc: %s\n", strerror(errno));
-    }
-
-    strlcpy(next->header, header, FIELD_SIZE);
-    strlcpy(next->field, field, FIELD_SIZE);
-
-    ptr->next = next;
-    return next;
+    if (strcmp(header, "If-Modified-Since") == 0) {
+        (void)isValidDate(field);
+    } 
 }
 
 void
@@ -407,7 +354,6 @@ reader(int fd) {
     char* protocol;
     int index;
 
-    header_info *ptr = &head;
     reader_response r_response;
 
     recv(fd, buf, BUFSIZE, 0);
@@ -531,7 +477,7 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than the first line. */
-            ptr = getHeaderContent(line, ptr);
+            getHeaderContent(line);
         }
         // line = strtok(NULL, "\r\n");
         n++;
