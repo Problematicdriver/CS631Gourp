@@ -1,5 +1,9 @@
 #include "writer.h"
 
+char* get_last_modified(char *path);
+char* get_date();
+char* get_content_type(char *path);
+
 void writer(reader_response r_response, int client_fd){
 
     /* Determine what to response based on what reader() return */
@@ -15,7 +19,37 @@ void writer(reader_response r_response, int client_fd){
         "Content-Type: Later",
         "Content-Length: Later",
         "body-> Hello World!"
-        };
+    };
+
+    /* filling in reponse */
+    char header[128], *head_content;
+    if ((head_content = get_date()) == NULL) {
+        // error status
+        printf("get_date()\n");
+    }
+    if (snprintf(header, 128, "Date: %s", head_content) < 0) {
+        printf("hahahhahahhahhah)\n");
+        fprintf(stderr, "sprintf %s\n", strerror(errno));
+    }
+    printf("%s\n", header);
+    r.date = header;
+
+    if ((head_content = get_last_modified(r_response.path)) == NULL) {
+        // error status
+    }
+    if (snprintf(header, 128, "Last-Modified: %s", head_content) < 0) {
+        fprintf(stderr, "sprintf %s\n", strerror(errno));
+    }
+    r.last_modified = header;
+    
+    if ((head_content = get_content_type(r_response.path)) == NULL) {
+        // error status
+    }
+    if (snprintf(header, 128, "Content-Type: %s", head_content) < 0) {
+        fprintf(stderr, "sprintf %s\n", strerror(errno));
+    }
+    r.content_type = header;
+
     printf("[/etc/passwd]:\n%s\n",r_body(r_response.path));
     // r_body = body;
     /* Send the http response */
@@ -130,7 +164,8 @@ dir_content(char* path) {
 	int size = 0;
 	char* str = "";
 	while ((dirp = readdir(dp)) != NULL) {
-		size += asprintf(&str, "%s%s\n", str,strdup(dirp->d_name));
+		if (strncmp(dirp->d_name, ".", strlen(".") != 0)) 
+            size += asprintf(&str, "%s%s\n", str,strdup(dirp->d_name));
 	}
 	printf("Size: %d\n", size);
 	
@@ -138,4 +173,49 @@ dir_content(char* path) {
     strlcpy(r, str, size);
 	(void)closedir(dp);
 	return r;
+}
+
+char*
+get_last_modified(char *path)
+{
+    struct stat sb;
+    char *s;
+
+    if (lstat(path, &sb) < 0) {
+        fprintf(stderr, "lstat() %s\n", strerror(errno));
+    }
+    if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
+        fprintf(stderr, "asctime() %s\n", strerror(errno));
+    }
+    return s;
+}
+
+char*
+get_date() {
+    time_t now;
+    char *s;
+    if ((now = time(0)) == (time_t)-1) {
+        fprintf(stderr, "time() %s\n",  strerror(errno));
+    }
+    if ((s = (asctime(gmtime(&now)))) == NULL) {
+        fprintf(stderr, "asctime() %s\n", strerror(errno));
+    }
+    return s;
+}
+
+char*
+get_content_type(char *path) {
+    const char *mime;
+    magic_t magic;
+    if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
+        fprintf(stderr, "magic_open() %s\n", strerror(errno));
+    } 
+    if (magic_load(magic, NULL) < 0) {
+        fprintf(stderr, "magic_load() %s\n", strerror(errno));
+    }
+    if ((mime = magic_file(magic, path)) == NULL) {
+        fprintf(stderr, "magic_file() %s\n", strerror(errno));
+    }
+    magic_close(magic);
+    return strdup(mime);
 }
