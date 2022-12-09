@@ -18,7 +18,7 @@ void writer(reader_response r_response, int client_fd){
     /* Send the http response */
     char* result;
     // Last-Modified not print now just for debugging
-    int size = asprintf(&result, "%s %s %s\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n\r\n%s\r\n\r\n",
+    int size = asprintf(&result, "%s %s %s\r\n%s%s%s%s%s\r\n%s\r\n\r\n",
         r.http_version, 
         r.status_code,
         r.status_message,
@@ -186,7 +186,7 @@ response_content(int code, char* path, bool cgi){
         "HTTP/1.0",
         "","",                  // 200, OK
         date,                     // date
-        "Server: sws",          
+        "Server: sws\r\n",          
         "",                     // Last-Modified
         "",                     // Content-Type
         "",                     // Content-Length
@@ -226,7 +226,7 @@ response_content(int code, char* path, bool cgi){
 
         asprintf(&content_length, "%s %ld", content_length, strlen(r.body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: text/html";
+        r.content_type = "Content-Type: text/html\r\n";
         break;
     case 400:
         r.status_code = "400";
@@ -236,7 +236,7 @@ response_content(int code, char* path, bool cgi){
         strcpy(body, "400 Bad Request");
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: :text/html";
+        r.content_type = "Content-Type: :text/html\r\n";
         break;
     case 404:
         r.status_code = "404";
@@ -246,7 +246,7 @@ response_content(int code, char* path, bool cgi){
         strcpy(body, "404 Not Found");
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: text/html";
+        r.content_type = "Content-Type: text/html\r\n";
         break;
     case 405:
         r.status_code = "405";
@@ -257,7 +257,7 @@ response_content(int code, char* path, bool cgi){
 
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: text/html";
+        r.content_type = "Content-Type: text/html\r\n";
         break;
     case 415:
         r.status_code = "415";
@@ -267,7 +267,7 @@ response_content(int code, char* path, bool cgi){
         strcpy(body, "415 Unsupported Media Type");
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: text/html";
+        r.content_type = "Content-Type: text/html\r\n";
         break;
     case 500:
         r.status_code = "500";
@@ -277,7 +277,7 @@ response_content(int code, char* path, bool cgi){
         strcpy(body, "500 Internal Server Error");
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: text/html";
+        r.content_type = "Content-Type: text/html\r\n";
         break;
     case 503:
         r.status_code = "503";
@@ -287,7 +287,7 @@ response_content(int code, char* path, bool cgi){
         strcpy(body, "503 Service Unavailable");
         asprintf(&content_length, "%s %ld", content_length, strlen(body));
         r.content_length = content_length;
-        r.content_type = "Content-Type: text/html";
+        r.content_type = "Content-Type: text/html\r\n";
         break;
     }
     return r;
@@ -297,7 +297,7 @@ char*
 get_last_modified(char *path)
 {
     struct stat sb;
-    char *s;
+    char *s, *t;
 
     if (lstat(path, &sb) < 0) {
         fprintf(stderr, "lstat() %s\n", strerror(errno));
@@ -307,13 +307,14 @@ get_last_modified(char *path)
     }
     int len = strlen(s);
     s[len - 1] = '\0';
-    return s;
+    asprintf(&t, "%s\r\n", s);
+    return t;
 }
 
 char*
 get_time() {
     time_t now;
-    char *s;
+    char *s, *t;
     if ((now = time(0)) == (time_t)-1) {
         fprintf(stderr, "time() %s\n",  strerror(errno));
     }
@@ -323,12 +324,14 @@ get_time() {
     }
     int len = strlen(s);
     s[len-1] = '\0';
-    return s;
+    asprintf(&t, "%s\r\n", s);
+    return t;
 }
 
 char*
 get_type(char *path) {
     const char *mime;
+    char *type;
     magic_t magic;
     if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
         fprintf(stderr, "magic_open() %s\n", strerror(errno));
@@ -340,5 +343,6 @@ get_type(char *path) {
         fprintf(stderr, "magic_file() %s\n", strerror(errno));
     }
     magic_close(magic);
-    return strdup(mime);
+    asprintf(&type, "%s\r\n", mime);
+    return type;
 }
