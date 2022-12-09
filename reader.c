@@ -4,11 +4,15 @@ static const char *rfc1123_date = "%a, %d %B %Y %T %Z";
 static const char *rfc850_date = "%a, %d-%B-%y %T %Z";
 static const char *ansic_date = "%a %B %d %T %Y";
 static const char *request_date_format = "%FT%TZ";
+static time_t mtime;
+static bool isCgi = false;
 
 char valid_status_codes[][FIELD_SIZE] = {
     "200",
+    "304",
     "400",
     "403",
+    "404",
     "405",
     "415",
     "431",
@@ -51,6 +55,9 @@ handle_socket(int server_fd) {
             r_response = reader(client_fd);
             r_response.requestTime = requestTime;
             r_response.remoteIp = remoteIp;
+            if(r_response.statusCode == 200 && r_response.mtime != -1) {
+                r_response.statusCode = modified(r_response.path);
+            }
             // Writer: Return a Hello world just for showcase
             writer(r_response, client_fd);
             /* Close the client socket connection */
@@ -81,7 +88,21 @@ isPrefix(char* string, char* prefix) {
     return strncmp(string, prefix, strlen(prefix)) == 0;
 }
 
-static time_t mtime;
+int
+modified(char* path) {
+
+    struct stat fileState;
+    if (stat(path, &fileState) == -1) {
+        if(d_FLAG) {
+            (void)printf("Can't stat %s\n", path);
+        }
+        return 304;
+    }
+    if(difftime(fileState.st_mtimespec.tv_sec, mtime) <= 0) {
+        return 304;
+    }
+    return 200;
+}   
 
 int
 isValidDate(char *date) {
@@ -214,6 +235,7 @@ checkPath(char* path) {
          * /cgi-bin/ can be a valid directory within the docroot. 
          * Only convert /cgi-bin/ into the path to cgidir if the c flag is set.
          */
+        isCgi = true;
         free(prefix_root);
         if ((prefix_root = strdup(real_cgidir)) == NULL) {
             if (d_FLAG) {
@@ -380,6 +402,8 @@ reader(int fd) {
     reader_response r_response;
     ssize_t bytes;
 
+    r_response.cgi = isCgi;
+
     msgEnd[0] = endChar;
     msgEnd[1] = '\0';
 
@@ -537,6 +561,7 @@ reader(int fd) {
                     return r_response;
                 } 
                 updated_path = checkPath(path);
+                r_response.cgi = isCgi;
                 if (!isPrefix(updated_path, "/")) {
                     /* checkPath returned an error code; propagate it. */
                     unsigned long i;
