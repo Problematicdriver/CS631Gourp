@@ -21,6 +21,7 @@ void handle_socket(int server_fd);
 bool checkProtocol(char* protocol);
 bool checkMethod(char* method);
 char* checkPath(char* path);
+int modified(char* path);
 reader_response reader(int fd);
 
 #endif

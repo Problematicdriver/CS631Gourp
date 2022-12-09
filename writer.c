@@ -7,11 +7,13 @@ void writer(reader_response r_response, int client_fd){
 
     /* Initialize the http response */
     struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
-    char *last_modified = "";
-    if(strcmp(r.last_modified, "")){
-	printf("[r.last_modified]%s\n", r.last_modified);
-	asprintf(&last_modified, "%s\r\n", r.last_modified);
+    // char *last_modified = "";
+    /*
+    if (strcmp(r.last_modified, "")) {
+	    // printf("[r.last_modified]%s\n", r.last_modified);
+	    asprintf(&last_modified, "%s\r\n", r.last_modified);
     }
+    */
 
     /* Send the http response */
     char* result;
@@ -21,7 +23,7 @@ void writer(reader_response r_response, int client_fd){
         r.status_code,
         r.status_message,
         r.date,
-        last_modified,
+        r.last_modified,
         r.server,
         r.content_type,
         r.content_length,
@@ -180,7 +182,6 @@ response_content(int code, char* path, bool cgi){
     
     asprintf(&date, "%s %s", date, get_time());
 
-
     struct response r = {
         "HTTP/1.0",
         "","",                  // 200, OK
@@ -191,24 +192,41 @@ response_content(int code, char* path, bool cgi){
         "",                     // Content-Length
         ""                      // Body
         };
+    
+    char *modified_date, *type;
+    if (code == 200 && (modified_date = get_last_modified(path)) == NULL)) {
+        code = 500;
+    }
+    if (code == 200 && ((type = get_type(path)) == NULL) {
+        code = 500;
+    }
 
     switch (code)
     {
     case 200:
         
-        // Content-Type
-        // Last-Modified   
         r.status_code = "200";
         r.status_message = "OK";
         r.body = r_body(path, cgi);
-
-        asprintf(&last_modified, "%s %s", last_modified, get_last_modified(path));
+        
+        asprintf(&last_modified, "%s %s", last_modified, modified_date);
         r.last_modified = last_modified;
         asprintf(&content_length, "%s %ld", content_length, strlen(r.body));
         r.content_length = content_length;
-        asprintf(&content_type, "%s %s", content_type, get_type(path));
+        asprintf(&content_type, "%s %s", content_type, type);
         r.content_type = content_type;
 
+        break;
+    case 304:
+        r.status_code = "304";
+        r.status_message = "Not Modified";
+        r.body = "304 Not Modified";
+ 
+        strcpy(body, "304 Not Modified");
+
+        asprintf(&content_length, "%s %ld", content_length, strlen(r.body));
+        r.content_length = content_length;
+        r.content_type = "Content-Type: text/html";
         break;
     case 400:
         r.status_code = "400";
@@ -261,7 +279,7 @@ response_content(int code, char* path, bool cgi){
         r.content_length = content_length;
         r.content_type = "Content-Type: text/html";
         break;
-    default:
+    case 503:
         r.status_code = "503";
         r.status_message = "Service Unavailable";
         r.body = "503 Service Unavailable";
@@ -301,6 +319,7 @@ get_time() {
     }
     if ((s = (asctime(gmtime(&now)))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
+        return "Not Available";
     }
     int len = strlen(s);
     s[len-1] = '\0';
