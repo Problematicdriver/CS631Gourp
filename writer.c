@@ -194,10 +194,10 @@ response_content(int code, char* path, bool cgi){
         };
     
     char *modified_date, *type;
-    if (code == 200 && (modified_date = get_last_modified(path)) == NULL)) {
+    if (code == 200 && (modified_date = get_last_modified(path)) == NULL) {
         code = 500;
     }
-    if (code == 200 && ((type = get_type(path)) == NULL) {
+    if (code == 200 && (type = get_type(path)) == NULL) {
         code = 500;
     }
 
