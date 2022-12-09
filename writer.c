@@ -11,6 +11,7 @@ void writer(reader_response r_response, int client_fd){
     /* Send the http response */
     char* result;
     // Last-Modified not print now just for debugging
+    
     int size = asprintf(&result, "%s %s %s\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n\r\n%s\r\n\r\n",
         r.http_version, 
         r.status_code,
@@ -285,8 +286,6 @@ get_last_modified(char *path)
     if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
     }
-    int len = strlen(s);
-    s[len - 1] = '\0';
     return s;
 }
 
@@ -300,8 +299,6 @@ get_time() {
     if ((s = (asctime(gmtime(&now)))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
     }
-    int len = strlen(s);
-    s[len-1] = '\0';
     return s;
 }
 
