@@ -1,24 +1,13 @@
 #include "writer.h"
 
 void writer(reader_response r_response, int client_fd){
-
-    /* Determine what to response based on what reader() return */
-    printf("reader(): %s\n", r_response.response);
-
-    /* Initialize the http response */
-    struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
-    // char *last_modified = "";
-    /*
-    if (strcmp(r.last_modified, "")) {
-	    // printf("[r.last_modified]%s\n", r.last_modified);
-	    asprintf(&last_modified, "%s\r\n", r.last_modified);
+    if (d_FLAG) {
+        (void)printf("reader returned(): %s\n", r_response.response);    
     }
-    */
-
-    /* Send the http response */
+    
+    struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
     char* result;
-    // Last-Modified not print now just for debugging
-    int size = asprintf(&result, "%s %s %s\r\n%s%s%s%s%s\r\n%s\r\n\r\n",
+    int size = asprintf(&result, "%s %s %s\r\n%s%s%s%s%s\r\n\r\n%s",
         r.http_version, 
         r.status_code,
         r.status_message,
@@ -30,11 +19,14 @@ void writer(reader_response r_response, int client_fd){
         r.body);
     char response[size + 1];
     strlcpy(response, result, size+1);
-    printf("Response:\n%s\n", response);
+    if (d_FLAG) {
+        (void)printf("Response:\n%s\n", response);    
+    }
     send_response(client_fd, response, size+1);
     if(l_FLAG && !d_FLAG) {
         logging(r_response.remoteIp, r_response.requestTime, r_response.firstLine, r_response.statusCode, size);
     }
+    close(client_fd);
 }
 
 void
@@ -73,29 +65,25 @@ char*
 r_body(char* path, bool cgi){
     struct stat path_stat;
     stat(path, &path_stat);
-    /* DIR */
-    if (S_ISDIR(path_stat.st_mode))
-    {
+    if (S_ISDIR(path_stat.st_mode)) {
         char* index_file;
         asprintf(&index_file, "%s%s", path, "/index.html");
         struct stat index_stat;
         stat(index_file, &index_stat);
-        /* If index.html exist, response index.html */
-        /* else response all file names in DIR */
+        /* 
+         * If index.html exist, serve index.html 
+         * else response all file names in DIR 
+         */
         if (S_ISREG(index_stat.st_mode)) {
             return file_content(index_file);
         } else {
-            /* DIR */
             return dir_content(path);
         }
         
     } else {
-	/* cgi outputt */
 	if(cgi){
 		return cgi_content(path);
 	}
-
-        /* NOT DIR, file_content */
         return file_content(path);
     }
 }
@@ -104,15 +92,19 @@ char*
 file_content(char* path){
     FILE* fp = fopen(path, "r");
     char buf[BUFSIZ];
-
     int size = 0;
 	char* str = "";
-    while (fgets(buf, BUFSIZ, fp) != NULL)
-    {
+    char* r;
+    while (fgets(buf, BUFSIZ, fp) != NULL) {
         size += asprintf(&str, "%s%s", str, buf);
     }
 
-    char* r = malloc(sizeof(char) * size);
+    if ((r = malloc(sizeof(char) * size)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+        return "";
+    }
     strlcpy(r, str, size);
     return r;
 }
@@ -173,7 +165,6 @@ char* cgi_content(char* filepath){
 
 struct response
 response_content(int code, char* path, bool cgi){
-    /* Prepare for date */
     char body[BUFSIZ];
     char *content_length = "Content-Length:";
     char *content_type = "Content-Type:";
@@ -201,8 +192,7 @@ response_content(int code, char* path, bool cgi){
         code = 500;
     }
 
-    switch (code)
-    {
+    switch (code) {
     case 200:
         
         r.status_code = "200";
@@ -334,13 +324,19 @@ get_type(char *path) {
     char *type;
     magic_t magic;
     if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
-        fprintf(stderr, "magic_open() %s\n", strerror(errno));
+        if (d_FLAG) {
+            (void)printf("magic_open() %s\n", strerror(errno));    
+        }
     } 
     if (magic_load(magic, NULL) < 0) {
-        fprintf(stderr, "magic_load() %s\n", strerror(errno));
+        if (d_FLAG) {
+            (void)printf("magic_load() %s\n", strerror(errno));
+        }
     }
     if ((mime = magic_file(magic, path)) == NULL) {
-        fprintf(stderr, "magic_file() %s\n", strerror(errno));
+        if (d_FLAG) {
+            (void)printf("magic_file() %s\n", strerror(errno));
+        }
     }
     magic_close(magic);
     asprintf(&type, "%s\r\n", mime);

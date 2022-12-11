@@ -16,6 +16,7 @@
 
 #define BUFSIZE 1024
 #define FIELD_SIZE 64
+#define NUMLINES 1024
 
 void handle_socket(int server_fd);
 bool checkProtocol(char* protocol);

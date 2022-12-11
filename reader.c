@@ -21,28 +21,21 @@ char valid_status_codes[][FIELD_SIZE] = {
 
 void 
 handle_socket(int server_fd) {
-    /* Buffer for storing client request */
     int client_fd, childpid;
     for (;;) {
         struct sockaddr_in cliAddr;
         socklen_t cliAddr_size;
         
-        /* Recieve client request */
         client_fd = accept(server_fd, (struct sockaddr*)&cliAddr, &cliAddr_size);
-        // client_fd = accept(server_fd, NULL, NULL);
         if (client_fd < 0) {
             continue;
         }
 
         char* remoteIp = (char *)malloc(sizeof(char)*BUFSIZ);
         sprintf(remoteIp, "%s:%d", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
-        //printf("Connection accepted");
         
         /* Fork one process for one client request */
         if ((childpid = fork()) == 0) {
-            close(server_fd);
-            //Find the time and store
-
             time_t currentTime;
             char requestTime[100]; 
             struct tm *tm;                                                                                                                       
@@ -51,23 +44,21 @@ handle_socket(int server_fd) {
             strftime(requestTime, sizeof(requestTime), request_date_format, tm);
 
             reader_response r_response;
-            // Reader
             r_response = reader(client_fd);
             r_response.requestTime = requestTime;
             r_response.remoteIp = remoteIp;
             if(r_response.statusCode == 200 && r_response.mtime != -1) {
                 r_response.statusCode = modified(r_response.path);
             }
-            // Writer: Return a Hello world just for showcase
+
             writer(r_response, client_fd);
-            /* Close the client socket connection */
-            close(client_fd);
             exit(1);
         } else if (childpid < 0) {
-            perror("fork()");
-        } else {
-            wait(NULL);
+            if (d_FLAG) {
+                (void)printf("Error fork(): %s\n", strerror(errno));    
+            }
         }
+        close(client_fd);
     }
 }
 
@@ -199,15 +190,17 @@ checkPath(char* path) {
 
     if (path[0] != '/') {
         /* Remove schema and hostname from path. */
-
-        // TODO add strdup check but really strdup might not need to be here
         if ((host = strstr(strdup(path), "://")) != NULL) {
             host = (host+3);
         } else {
-        // TODO add strdup check but really strdup might not need to be here
-            host = strdup(path);
+            if ((host = strdup(path)) == NULL) {
+                if (d_FLAG) {
+                    (void)printf("strdup: %s\n", strerror(errno));
+                }
+                free(prefix_root);
+                return "500 Internal Server Error";
+            }
         }
-        // TODO add strdup check but really strdup might not need to be here
         newpath = strstr(strdup(host), "/");
         free(host);
     } else {
@@ -301,7 +294,6 @@ checkPath(char* path) {
         char* part_updated_path;
         char *p1, *p2;
 
-        // TODO strdup check
         part_docroot = strtok_r(strdup(prefix_root), "/", &p1);
         part_updated_path = strtok_r(strdup(updated_path),"/", &p2);
         
@@ -388,7 +380,7 @@ reader(int fd) {
     char endChar = 127;
     char* buf;    
     char* line;
-    char* lines[1024] = {NULL};
+    char* lines[NUMLINES] = {NULL};
     char msgEnd[2];
     char* method;
     char* part;
@@ -458,6 +450,14 @@ reader(int fd) {
         }
     }
     n = 0;
+    if (lines[0] == NULL) {
+        r_response.statusCode = 400;
+        r_response.mtime = mtime;
+        r_response.path = "";
+        r_response.response = "Bad Request";
+        return r_response;
+    }
+
     while (lines[n] != NULL) {
         line = lines[n];
         if (d_FLAG) {
@@ -503,7 +503,6 @@ reader(int fd) {
              * These parts should be in the format "METHOD path protocol"
              */
             if (index != 3) {
-                /* Error here */
                 free(line);
                 if (index >= 1) {
                     free(method);
@@ -535,7 +534,7 @@ reader(int fd) {
                     r_response.response = "Method Not Allowed";
                     return r_response;
                 } else if (!checkProtocol(protocol)) {
-                    /* Method was not "HTTP/1.0" or "HTTP/0.9". */
+                    /* Protocol was not "HTTP/1.0" or "HTTP/0.9". */
                     if (d_FLAG) {
                         (void)printf("415 Unsupported Media Type");
                     }
@@ -563,7 +562,7 @@ reader(int fd) {
                 updated_path = checkPath(path);
                 r_response.cgi = isCgi;
                 if (!isPrefix(updated_path, "/")) {
-                    /* checkPath returned an error code; propagate it. */
+                    /* CheckPath returned an error code; propagate it. */
                     unsigned long i;
                     for (i = 0; i < sizeof(valid_status_codes) / FIELD_SIZE; i++) {
                         if (isPrefix(updated_path, valid_status_codes[i])) {
@@ -584,7 +583,6 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than the first line. */
-            //printf("%d\n", strncmp(line, msgEnd, 1));
             if (strncmp(line, msgEnd, 1) != 0) {
                 headerVal = getHeaderContent(line);
                 if (headerVal != 0) {
