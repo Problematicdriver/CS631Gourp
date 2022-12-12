@@ -1,0 +1,657 @@
+commit 1d0eb6ccf1fda8f257fd0a566777959e455cc6b6
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:19:10 2022 -0500
+
+    Delete sws.core
+
+commit e8d33e21abd3bbcb1ef3305057c58efef80a9448
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:19:02 2022 -0500
+
+    Delete index.html
+
+commit fd8203b15e1231a7fbef6392eb83778748c351c8
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:18:51 2022 -0500
+
+    Delete log
+
+commit 614f332f8dee1e6a9c76d5b09006f8b0028ffb4e
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:18:44 2022 -0500
+
+    Delete make-swsdirs
+
+commit 401c593de9d77ceeebc53add5b9d0b1e50f38830
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:18:35 2022 -0500
+
+    Delete test-sws.sh
+
+commit 9d7c8374ecdb623d4045d174da890f34890f42f7
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:18:25 2022 -0500
+
+    Delete symdir
+
+commit 96561ab10cc38f925b2a35968af50ab896b5b77e
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:18:11 2022 -0500
+
+    Delete .gitignore
+
+commit 9fb475878ce3ea3f2dbeb98a62dd2fcde1933e09
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:17:57 2022 -0500
+
+    Delete docroot directory
+
+commit 40d758a8605b1c4d75aea2f66c70f72da41dc832
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:17:37 2022 -0500
+
+    Delete cgidir directory
+
+commit 4755f8ced953ef090b853f90b18ed01089881bc4
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:17:14 2022 -0500
+
+    Update README.md
+
+commit a290bab0b3e1665bc070b832be8d39ba1941e50b
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 15:13:55 2022 -0500
+
+    Create README.md
+
+commit fbfdaae293dadc3eba664cafd01806832d640d68
+Author: Jiayi Guo <46379929+Problematicdriver@users.noreply.github.com>
+Date:   Mon Dec 12 14:58:41 2022 -0500
+
+    Update README.md
+
+commit 09e1c99cc8c60afc8e8d147c5957e0063c72659f
+Author: Jiayi Guo <46379929+Problematicdriver@users.noreply.github.com>
+Date:   Mon Dec 12 14:57:38 2022 -0500
+
+    Update README.md
+
+commit ec33aeca07e47ca35c0d84e7cf000b1480782334
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 14:48:44 2022 -0500
+
+    Update README.md
+
+commit 1f86169161e231cbcfde64ebab2212bba1adc498
+Merge: 9929d10 4eb2097
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Mon Dec 12 14:27:27 2022 -0500
+
+    Merge branch 'main' of https://github.com/Problematicdriver/CS631Gourp
+
+commit 9929d10c24e8034fbf63b4e6b1910528ddf46eed
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Mon Dec 12 14:26:49 2022 -0500
+
+    Added cgi to reader_response and fixed few minor bugs
+
+commit 4eb2097e767fd653bb38dc5471833de6c6f15a10
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Mon Dec 12 14:22:48 2022 -0500
+
+    Update README.md
+
+commit 58146034100f7b5a3755c7b4a1f39e282e228566
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Mon Dec 12 03:42:59 2022 +0000
+
+    Changed style to remain consistent throughout the code. Changed logging() from exit(1) on failure to just return since logging should not impact the user. Changed line endings to Unix line endings for all files that were windows line endings.
+
+commit a2b6047d0e61efd167f99216f8c6f60a31fe1424
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Mon Dec 12 03:24:52 2022 +0000
+
+    Joe corrected all fprintf to be (void)printf with a d_FLAG check. Corrected some error checking to return the correct values or print the correct error message. Removed a hacky way of header checking since it is no longer needed after I corrected the way that lines are read in.
+
+commit 4616dbe353c9e9f15a4dc72cb8df2c76397ff6fa
+Author: Jiayi Guo <46379929+Problematicdriver@users.noreply.github.com>
+Date:   Mon Dec 12 00:31:59 2022 -0500
+
+    Update README.md
+
+commit c720ff58a1c449406e0a2f15c7b8e5d53a9a1726
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Mon Dec 12 05:28:33 2022 +0000
+
+    Removed a duplicate in writer.h
+
+commit 4bb260eb3858edeb6f5cfa5f880f03e85e70647e
+Author: 3santree <wangyueffect@163.com>
+Date:   Wed Nov 23 04:37:07 2022 -0500
+
+    Update header for index.html
+
+commit be0a7b43b6109e79d5de09cab466ecfb009d5106
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Sun Dec 11 21:47:03 2022 -0500
+
+    recover Content-Length for HEAD
+
+commit f62fe7d90d179000dcd8267175f55b367ba94429
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Sun Dec 11 21:31:41 2022 -0500
+
+    Implement response for HEAD request
+
+commit b12887f917b1987b3eecba80e3fd6394b151c183
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Mon Dec 12 02:15:37 2022 +0000
+
+    Added funciton definition to reader.h and writer.h
+
+commit 765b3d871caa448674899e1474a06f1c4a1c6fac
+Author: 3santree <wangyueffect@163.com>
+Date:   Wed Nov 23 02:28:33 2022 -0500
+
+    Response 500 for server_error
+
+commit 6d6336e4f44ba67fe3f0997f235fc6856434413e
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Mon Dec 12 00:04:21 2022 +0000
+
+    Jiayi added error checking for get date and type
+
+commit 54e16c0f295cf4ba5be512b7654baa542da9f5b0
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Mon Dec 12 00:01:19 2022 +0000
+
+    Jiayi added additional error checking
+
+commit 6d773ea100e6b8371ef0d32fa666ab63fbccbc10
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sun Dec 11 23:47:31 2022 +0000
+
+    Joe removed extra comments and added proper error checking for some functions. Some functions still need error checking and proper returns in that case.
+
+commit cf10ad8470abe60e01ee8c9011e4bae464aa4d5e
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 22:50:29 2022 +0000
+
+    Jiayi edited codes that formats response, getting rid of redundant blank lines
+
+commit 95c3a9375fe5c0b5eb213bb309a87f70d4ec060c
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 22:49:43 2022 +0000
+
+    Jiayi edited codes that formats response, getting rid of redundant blank lines
+
+commit 1101869d292f1773a95dcabe0fa6670c1d876eb9
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 22:48:54 2022 +0000
+
+    Jiayi edited codes that formats response, getting rid of redundant blank lines
+
+commit fe2ecdbc6d189745c3d7d2bafc2e2f851bdbba75
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 22:18:21 2022 +0000
+
+    Jiayi added error checking before server writing response, making sure that the true status code is reflected in response message
+
+commit 1fb5c645ff4a111329b158f84ef072dc2766d9a0
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 22:15:45 2022 +0000
+
+    Jiayi added error checking before server writing response, making sure that the true status code is reflected in response message
+
+commit 48cfe6c5c7823744a485049d2227a5b5323e933e
+Merge: f0f01f8 b890211
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 19:58:52 2022 +0000
+
+    merged
+
+commit f0f01f85d86d5b6e591896d6c730057859c26227
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 9 19:55:05 2022 +0000
+
+    no changes
+
+commit ab780efb14c2a6cda23d400f4e63423ad9440e36
+Merge: b5f7c12 3566dc2
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 22:26:23 2022 +0000
+
+    Jiayi added Last Modified field to the reponse header
+
+commit b5f7c12046645bd926cb8fd3abc3fcde1b81b9ec
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 22:13:55 2022 +0000
+
+    saving changes
+
+commit 3566dc249d48dc5f852362930d6591fe7935808b
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Thu Dec 8 17:13:26 2022 -0500
+
+    Update writer.h
+
+commit 7a3c3e3709f8ae1e4c0d69737e259bb935d2b1d0
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Thu Dec 8 17:13:01 2022 -0500
+
+    Update writer.c can full response
+
+commit c09b5d08c1d6de182295cdfde534003167605f05
+Merge: 3b5b75c 4f8bc74
+Author: kprajap2 <118020992+kprajap2@users.noreply.github.com>
+Date:   Thu Dec 8 16:40:14 2022 -0500
+
+    Merge pull request #5 from Problematicdriver/feature/logging
+    
+    Feature/logging
+
+commit 4f8bc74c75c4979fc2d501ad8dd598d6cd3cdf3b
+Merge: e487636 3b5b75c
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Thu Dec 8 16:39:25 2022 -0500
+
+    Resolved merge conflicts
+
+commit e487636a80fe33bdc35fb4215e3f30da8800c541
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Thu Dec 8 16:38:02 2022 -0500
+
+    Fixed minor bug in logging
+
+commit 41428251193bc37f696dfb218783522ac2c996c6
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 21:27:01 2022 +0000
+
+    Jiayi added functions that generates header content
+
+commit 8e560789c2be4691ba59004a5663dd13361364fb
+Merge: 78e278d 8856d77
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 20:36:05 2022 +0000
+
+    Jiayi created the generation of header content in response in writer.c
+
+commit 78e278d4229bf9589e9eb509c7b57b54488f7cd5
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 20:32:16 2022 +0000
+
+    Jiayi added generation of header content in writer.c
+
+commit 8856d77be498216d31355031ee907af48232ecad
+Merge: eccfd18 51aaceb
+Author: kprajap2 <118020992+kprajap2@users.noreply.github.com>
+Date:   Thu Dec 8 15:31:57 2022 -0500
+
+    Merge pull request #4 from Problematicdriver/feature/logging
+    
+    Restructred reader_response and added logging functionality
+
+commit 51aacebb420188ddec3cb519876208132477583f
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Thu Dec 8 15:30:08 2022 -0500
+
+    Restrcutred reader_response and added logging functionality
+
+commit eccfd189c59208c08ce70887cf6e683093eca3f7
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Thu Dec 8 11:51:56 2022 -0500
+
+    Delete reader.o
+
+commit 3b5b75c09206d3cecb189d776843d65f530f9bc1
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sun Dec 4 15:35:23 2022 +0000
+
+    Joe updated recv() to function in a loop splitting on '\n' and passing line by line into lines. Then once two '\n' are seen in a row, or two '\r\n' are in a row the reading is complete. This means the lines are set and can now be processed.
+
+commit f678a6ab14ba3709ee6fc2b000f2c84779668aff
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sun Dec 4 11:35:17 2022 +0000
+
+    Joe updated the removed linked list version to now include correct error codes and error code passing.
+
+commit 0d108c538fa8ca05ababfb38a436e8a89a57f277
+Merge: a44a8ca 83d44e6
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 05:10:05 2022 +0000
+
+    Merge branch 'main' of https://github.com/Problematicdriver/CS631Gourp
+    Jiayi removed the linked list to now only store if mod since content
+    i
+
+commit a44a8ca4a743b1342618e1f4ef2a89762342f27b
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 05:09:36 2022 +0000
+
+    Jiayi remove the linked list for header content
+
+commit 13df315192d60a61de67d3378b759689dff4b4ec
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 8 03:23:59 2022 +0000
+
+    Jiayi reworked header parsing to allow if-modifies-since only and added mtime field to reader's response, storing parsed modifidied time in time_t if header if valid else -1
+
+commit 6026cf84ad0ec37e8833986a7e571340f86cf5c4
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Wed Dec 7 16:26:48 2022 -0500
+
+    Fixed bug
+
+commit 23019dd593442c65faf8e0a622d6fb8bd4f53c82
+Merge: 0c771e6 ee6b753
+Author: j-iuni <49351166+j-iuni@users.noreply.github.com>
+Date:   Wed Dec 7 11:48:15 2022 -0500
+
+    Merge pull request #3 from Problematicdriver/feature/passing_path_to_writer
+    
+    Passing the updated path and response got from the reader to writer
+
+commit ee6b753c23025be56cfbe9e6299b51349b5f3a37
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Mon Dec 5 23:22:29 2022 -0500
+
+    Passing the updated path and response got from the reader to write using struct
+
+commit 83d44e6b81cfde510abc013848d18a9dd3498ea3
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sun Dec 4 08:24:28 2022 +0000
+
+    Added incompatibility for -l and -d flags. Changed -h to be seperate and return EXIT_SUCCESS and all other usage printing to fprintf() and return EXIT_FAILURE.
+
+commit 0c771e6fd985baddedc589f8c2117cf478094c64
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sun Dec 4 05:40:23 2022 +0000
+
+    Worked on including error checking for using strdup (not complete). Implemented the returning of proper http response codes from checkPath() as well as reader(). Made a change in checkPath() such that if after resolving the realpath the client is outside the prefix_root it is now a '403 Forbidden'. This is a better solution than attempting to find the exact symlink section of the URI. It is also a better solution than just serving the prefix_root like we had previously decided upon.
+
+commit 0f226ef74d71ed59bcee67a9604c3493143236c5
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Sun Dec 4 00:46:11 2022 +0000
+
+    removed local redeclaration of real_cgidir and real_docroot
+
+commit a1cbd9682faefc8008cd32dd96065b7d15be2ed0
+Merge: 0fa69eb f92c22f
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Sat Dec 3 21:59:45 2022 +0000
+
+    after merge
+
+commit 0fa69eb09aab90c388deded9ac5eef008ee84cc5
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Sat Dec 3 21:51:01 2022 +0000
+
+    before merge
+
+commit f92c22fb11288939b6a9af94041c8aa884eb7e1c
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sat Dec 3 19:46:59 2022 +0000
+
+    Updated Makefile to include the suffix rule for generating a .o file from a .c and .h. Removed variables from writer.c that prevented compilation. Added #ifndef check to writer.h.
+
+commit ffebb15ecf9109baec2d0b473fe9f957e98ca230
+Author: Jiayi Guo <46379929+Problematicdriver@users.noreply.github.com>
+Date:   Sat Dec 3 14:23:04 2022 -0500
+
+    Update README.md
+
+commit 1649d909978bdd9adb1bad2b8c60a24c22aeb1b7
+Author: Jiayi Guo <46379929+Problematicdriver@users.noreply.github.com>
+Date:   Sat Dec 3 13:58:20 2022 -0500
+
+    Update README.md
+
+commit 589c74bc0760393f1861f930685793a38ac56396
+Author: 3santree <wangyueffect@163.com>
+Date:   Fri Dec 2 16:46:25 2022 -0500
+
+    update readme
+
+commit 5f9d15260da6b59dbcfb31564a39ba83122426cc
+Author: 3santree <wangyueffect@163.com>
+Date:   Fri Dec 2 16:29:57 2022 -0500
+
+    delete binary files
+
+commit 22429bcd2db2db9dd92ae797b528eea7d00ce427
+Author: 3santree <wangyueffect@163.com>
+Date:   Fri Dec 2 16:29:19 2022 -0500
+
+    Add writer.c
+
+commit 947c9d38fb301056552b01c46319a537a0a6590f
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Dec 2 20:32:44 2022 +0000
+
+    Fixed extern variables
+
+commit a493e55d7316eeb883f2774ea028294480178f10
+Merge: f336322 fe6eca6
+Author: kprajap2 <118020992+kprajap2@users.noreply.github.com>
+Date:   Fri Dec 2 15:17:04 2022 -0500
+
+    Merge pull request #2 from Problematicdriver/feature/realpath
+    
+    Feature/realpath
+
+commit fe6eca6a1278e311e12be57cebae8edd0e895f52
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Fri Dec 2 20:15:50 2022 +0000
+
+    Kavi and Joe finished updating the path from the user. Now works with symlinks, both within and outside of the docroot or cgi-bin or user home directory. Decision was made that if a symlink brought the path outside of the current prefix that is valid the directory of the prefix is returned instead. Minor bug fixes and code cleanup included.
+
+commit f336322c2af9391bcd3226e28087e5cde3aad1c1
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Dec 1 05:34:10 2022 +0000
+
+    header content validation
+
+commit dc03d68563115c85f484f222dc11d7cc64fceb76
+Author: KaviPrajapati <kaviprajapati1997@gmail.com>
+Date:   Wed Nov 30 15:32:24 2022 -0500
+
+    Added logic for the path outside the docroot
+
+commit 8af4730e2f669f7ac25508053cee8848c934a19d
+Author: KaviPrajapati <kaviprajapati1997@gmail.com>
+Date:   Wed Nov 30 14:43:45 2022 -0500
+
+    Fixed realpath bug
+
+commit 66aab0a4c839ed7c574089ec7bbaa740874b4f55
+Author: KaviPrajapati <kaviprajapati1997@gmail.com>
+Date:   Wed Nov 30 12:06:30 2022 -0500
+
+    Manually generating real path
+
+commit 5392262d7d5039efcf25981895449af0e1a8efa1
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Wed Nov 30 02:25:58 2022 +0000
+
+    Team met today to work on improving the creation and checking of valid paths (Kavi and Joe), writer.c and writer.h (Manchester), and the checking of proper headers submitted by the client (Jiayi). The update to checking and creating the path now yields the correct path with the cases of shema://hostname/foo, hostname/foo, /foo, /../../../foo (and all variations including .. that we could think of), /~user/foo, and /cgi-bin/foo when the c_flag is set and not set. The path yielded is guaranteed within the docroot, home-dir-of-the-user/sws, or the cgi-bin realpath. The header checking is not yet complete as of the end of this meeting, but progress was made with the checking of valid header formatting with If-Modified-Since still needing work. The 3 variations of time have proved to be challenging, but Jiayi has posted on the slack about it and is hoping for some help from the class. Manchester worked on the writer.* files, in which the functions for writing back to the client over the socket are written. The response struct was created to store all the headers that need to be sent back to the client from the server, and for now is printed for testing purposes. Right now this does not function with the socket, hopefully functionality that can be implemented in tomorrow's team meeting.
+
+commit 91218b6ee97bb6abeff15834b3cc7740abcf7366
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Tue Nov 29 01:50:49 2022 +0000
+
+    Worked on improving sws.c to include daemonization, inclusion of docroot as an argument. Then checked docroot and cgidir to ensure valid path resolutions and that both resolve to a directory.
+
+commit b89021182ac14662a7bffbfb7a7c215de8774d5e
+Author: 3santree <wangyueffect@163.com>
+Date:   Tue Nov 22 18:03:30 2022 -0500
+
+    last-modified output correctly
+
+commit 3fdcf692315d5fd798b39727cd0a1d0dca9963fe
+Merge: f48a821 9582031
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Thu Dec 8 18:45:02 2022 -0500
+
+    Merge branch 'main' of https://github.com/Problematicdriver/CS631Gourp
+
+commit f48a821106a3ce42cba705dfe83e5d856f27f473
+Author: kprajap2 <kprajap2@stevens.edu>
+Date:   Thu Dec 8 18:43:50 2022 -0500
+
+    Added logic to check whether whatever path specified is modified before the mtime passed in header or not and based on that returning 304
+
+commit 9582031b038b552a0f3eba395e9b9943b9a3c8d8
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Thu Dec 8 18:34:27 2022 -0500
+
+    fix bug, now could return the output
+
+commit 0cbfd53d4ce8b1f80d35c9debab5f5851d35a32c
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Thu Dec 8 18:20:40 2022 -0500
+
+    changed mistyped cgi
+
+commit 616223430dbf37d8566eb276b0792ff33ace1d35
+Author: 3santree <wangyueffect@163.com>
+Date:   Tue Nov 22 17:24:28 2022 -0500
+
+    Add If cgi out
+
+commit 8d3fc32de2af95e40d2c2915fe0bf87ae62b94bc
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sun Dec 4 16:52:50 2022 +0000
+
+    Fixed a minor bug where 404 was not included in the list of acceptable status codes. Also included 304 for future use.
+
+commit 564771d876a5fe9960e1093f25fd69db3065fd44
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Sun Nov 20 19:50:56 2022 -0500
+
+    merged
+
+commit 90bb795e2d4d5553660548b4583dea558312f405
+Merge: 6978e44 46ea685
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Sun Nov 20 19:45:10 2022 -0500
+
+    Merge pull request #1 from Problematicdriver/feature/check_path
+    
+    checkPath method
+
+commit 46ea685dbfd7a37ada75aa06d3231162feb0d502
+Merge: c5f97e2 6978e44
+Author: kprajap2 <118020992+kprajap2@users.noreply.github.com>
+Date:   Fri Nov 18 18:21:47 2022 -0500
+
+    Merge branch 'main' into feature/check_path
+
+commit c5f97e28a38d0b4a9bc4d0214f10142c9bfe5bda
+Author: KaviPrajapati <kaviprajapati1997@gmail.com>
+Date:   Fri Nov 18 18:15:02 2022 -0500
+
+    added functionality to check path and if /cgi-bin is found make realtive path based on the cgi_dir provided using c_FLAG
+
+commit 6978e44b96a9ffc8f235755d5ea95c225f802c46
+Author: 3santree <37735352+3santree@users.noreply.github.com>
+Date:   Fri Nov 18 00:15:11 2022 -0500
+
+    Update README.md
+    
+    “Ports 0-1023 are restricted and (typically) can only be used by services which have root privileges.”
+
+commit 924e4dda63a6ad70225f0ebbf5f33ac9a9188023
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 18:05:57 2022 -0500
+
+    add README.md
+
+commit f4f7657f7e12aa9b9f5a045781d22c6aca11c92d
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 17:54:45 2022 -0500
+
+    checkMethod and checkProtocol works now
+
+commit fbb07213349e069fbd8fc1ac5e037730d76b1757
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 17:37:09 2022 -0500
+
+    Project are Full functional now
+
+commit 00a9c0524232aff3880eb5d10c1c05dbcf6681ca
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 16:30:06 2022 -0500
+
+    Print clear for showing what we got now
+
+commit 70fd3bd7be3df9cc8b1a393a21453a71f13402fb
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 16:24:21 2022 -0500
+
+    now can succesfully run
+
+commit 5f89550797fa68bb13fc38ce7a7c9af4cc029113
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Nov 17 21:13:49 2022 +0000
+
+    0
+
+commit 4c92d565a6c1ae2ae3225c0c69c1f3e08aed97b3
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 16:03:04 2022 -0500
+
+    Solve problem using strtok
+
+commit 0b13340c974cfe63ce93b69cfb38f35e55228205
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 15:55:48 2022 -0500
+
+    test manchester
+
+commit 5bc036c3e3dd87f0356c41b18644a579da129b00
+Author: yuan <yuan@yuandeMacBook-Pro.local>
+Date:   Thu Nov 17 15:54:52 2022 -0500
+
+    test
+
+commit 472d0304ef8fed529782b6a96517fe56c86cd562
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Thu Nov 17 20:20:21 2022 +0000
+
+    Jiayi fixed the port but where 8080 binds to same addresses
+
+commit 2489955ecd8b8cf8ffdbf50927e4a4b442b2ff21
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Thu Nov 17 20:05:07 2022 +0000
+
+    Bug fixed to allow compilation. Makefile now includes reader.c and reader.h. Known problems/bugs: bind() fails when listening IPv6 and IPv4 on the same port. reader.c strtok fails when splitting the first line causing it to lose track of all the lines after it (works if the first line is not split). checkPath is not implemented.
+
+commit 4c76a22d8acfb8aad90f4ae1c6fb850124cd8fc4
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Thu Nov 17 19:28:11 2022 +0000
+
+    Implemented select(2) to have socket.c listen on all available IP addresses. Created reader.c and reader.h to handle receiving requests form the client and processing those requests to ensure they are valid. Requests are broken down into processing the first line, ensuring that there are 3 elements seperated by ' ', checking that the first element is a valid method, check the third element is a valid protocol, then check the second element is a valid path under the docroot, and if not it is resolved to be dockroot. Reader.c is not fully implemented and requires testing, especially on checkPath() which does not currently work. Team meeting on 11/17 between Manchester, Jiayi, and Joe. Manchester and Joe worked on reader.c and Jiayi worked on socket.c. Kavi could not make this meeting due to lecture, but was in contact through slack and offered to complete functionality when free.
+
+commit ed9b01968725bba3bfe7d91260621a1e394bb03f
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Sun Nov 13 17:40:33 2022 +0000
+
+    Bugs are now fixed on socket.c. Rearranged code in sws.c and now default hostname is set to localhost (this part need further work), other wise server starts successfully for any valid ip and user specified port.
+
+commit 8bab62790c7af37739277ca8fb0e9eaf7c6dec37
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Sun Nov 13 17:16:54 2022 +0000
+
+    fixed bugs in create socket
+
+commit 816e370e232c4b2d589bc58f48fbcac9ff3aacd3
+Author: j-iuni <joetaco112@yahoo.com>
+Date:   Sat Nov 12 17:44:56 2022 +0000
+
+    The team met Friday 11/11 and began work on the project. Joe and Kavi worked on sws.c, parsing options and input from the user, debugging input if the -d flag is specified, and created the Makefile and sws.h file. Manchester and Jiayi worked on socket.c, generating a socket with the correct IP and port if passed by flags, or with default 8080 port and all IP if none specified. socket.c also handles a queue of connections with the next step being to add forking child processes to handle connections. A very productive team meeting with a lot of progress on the project.
+
+commit e5c2be12b74c246d43b2b40852012fbfa1fa667e
+Author: Problematicdriver <jguo33@illinois.edu>
+Date:   Fri Nov 11 20:29:02 2022 +0000
+
+    first commit
