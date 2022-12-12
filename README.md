@@ -7,10 +7,12 @@
 ## OPTIONS
 The following options are supported by sws:
 ```
-−c dir −d
+−c dir 
+−d
 −h
 −i address
-−l file −p port
+−l file
+−p port
 ```
 
 ## DETAILS
