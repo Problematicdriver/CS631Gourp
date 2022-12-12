@@ -1,0 +1,385 @@
+=> GET / HTTP/0.9
+HTTP/1.0 200 OK
+Date: Mon Dec 12 01:12:25 2022
+Last-Modified: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: inode/directory
+Content-Length: 184
+
+Makefile
+README.md
+reader.c
+reader.h
+socket.c
+socket.h
+sws.c
+sws.h
+writer.c
+writer.h
+cgidir
+socket.o
+sws.o
+sws
+usr
+symdir
+sws.core
+reader.o
+writer.o
+make-swsdirs
+test-sws.sh
+b
+errlog1
+=> GET / HTTP/1.0
+HTTP/1.0 200 OK
+Date: Mon Dec 12 01:12:25 2022
+Last-Modified: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: inode/directory
+Content-Length: 184
+
+Makefile
+README.md
+reader.c
+reader.h
+socket.c
+socket.h
+sws.c
+sws.h
+writer.c
+writer.h
+cgidir
+socket.o
+sws.o
+sws
+usr
+symdir
+sws.core
+reader.o
+writer.o
+make-swsdirs
+test-sws.sh
+b
+errlog1
+=> GET / HTTP/1.0000
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET / HTTP/1.1
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET / HTTP/2.0
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET / HTTP
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET / HTTP/10000000000000000000000000000000000000000000000000000
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET / BACON
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET / BACON/3.2
+HTTP/1.0 415 Unsupported Media Type
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 26
+
+415 Unsupported Media Type=> GET /
+HTTP/1.0 400 Bad Request
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: :text/html
+Content-Length: 15
+
+400 Bad Request=> GET / HTTP/1.0
+HTTP/1.0 200 OK
+Date: Mon Dec 12 01:12:25 2022
+Last-Modified: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: inode/directory
+Content-Length: 184
+
+Makefile
+README.md
+reader.c
+reader.h
+socket.c
+socket.h
+sws.c
+sws.h
+writer.c
+writer.h
+cgidir
+socket.o
+sws.o
+sws
+usr
+symdir
+sws.core
+reader.o
+writer.o
+make-swsdirs
+test-sws.sh
+b
+errlog1
+=> HEAD / HTTP/1.0
+HTTP/1.0 200 OK
+Date: Mon Dec 12 01:12:25 2022
+Last-Modified: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: inode/directory
+Content-Length: 184
+
+Makefile
+README.md
+reader.c
+reader.h
+socket.c
+socket.h
+sws.c
+sws.h
+writer.c
+writer.h
+cgidir
+socket.o
+sws.o
+sws
+usr
+symdir
+sws.core
+reader.o
+writer.o
+make-swsdirs
+test-sws.sh
+b
+errlog1
+=> POST / HTTP/1.0
+HTTP/1.0 405 Method Not Allowed
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 22
+
+405 Method Not Allowed=> DELETE / HTTP/1.0
+HTTP/1.0 405 Method Not Allowed
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 22
+
+405 Method Not Allowed=> BACON / HTTP/1.0
+HTTP/1.0 405 Method Not Allowed
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 22
+
+405 Method Not Allowed=>  / HTTP/1.0
+HTTP/1.0 400 Bad Request
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: :text/html
+Content-Length: 15
+
+400 Bad Request=> GET '/cgi-bin/env.cgi' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/cgi-bin/env.cgi?q=foo&food=bacon' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/cgi-bin/post.cgi' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir/file' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir/' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir/.' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir2/' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/file' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/file2' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/file space' HTTP/1.0
+HTTP/1.0 400 Bad Request
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: :text/html
+Content-Length: 15
+
+400 Bad Request=> GET '/file>path' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/file%%20space%%20%%3C%%20path%%20%%3E%%20name' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/ls' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/notallowed' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET 'no-leading-slash' HTTP/1.0
+=> GET '/../../../../../../../../../etc/passwd' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir/file/../../dir/file' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/dir/./file' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/~jschauma/' HTTP/1.0
+HTTP/1.0 500 Internal Server Error
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 25
+
+500 Internal Server Error=> GET '/~jschauma/oink' HTTP/1.0
+HTTP/1.0 500 Internal Server Error
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 25
+
+500 Internal Server Error=> GET '/~jschauma/d/f' HTTP/1.0
+HTTP/1.0 500 Internal Server Error
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 25
+
+500 Internal Server Error=> GET '/~nobody' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/nowhere' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET '/passwd' HTTP/1.0
+HTTP/1.0 404 Not Found
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: text/html
+Content-Length: 13
+
+404 Not Found=> GET HTTP/1.0
+HTTP/1.0 400 Bad Request
+Date: Mon Dec 12 01:12:25 2022
+Server: sws
+Content-Type: :text/html
+Content-Length: 15
+
+400 Bad Request

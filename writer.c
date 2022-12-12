@@ -40,7 +40,7 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int s
         }
         exit(1);
     } 
-    sprintf(logging_buffer, "%s %s %s %d %d", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
+    sprintf(logging_buffer, "%s %s %s %d %d\n", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
     if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
@@ -81,9 +81,9 @@ r_body(char* path, bool cgi){
         }
         
     } else {
-	if(cgi){
-		return cgi_content(path);
-	}
+	    if (cgi){
+		    return cgi_content(path);
+	    }
         return file_content(path);
     }
 }

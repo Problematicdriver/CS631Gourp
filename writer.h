@@ -32,6 +32,7 @@ typedef struct reader_response {
 } reader_response;
 
 void writer(reader_response r_response, int client_fd);
+void logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status,  int responseSize);
 void send_response(int client_fd, void *response, size_t length);
 char* r_body(char* path, bool cgi);
 char* file_content(char* path);
