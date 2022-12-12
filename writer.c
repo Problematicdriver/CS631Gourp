@@ -9,9 +9,7 @@ void writer(reader_response r_response, int client_fd){
     // Response for Head request
     int head = strncmp(r_response.firstLine, "HEAD", 4);
     if(head == 0){
-        free(r.content_length);
         free(r.body);
-        r.content_length = "Content-Length: 0";
         r.body = "";
     }
     char* result;
