@@ -186,10 +186,10 @@ response_content(int code, char* path, bool cgi){
     
     char *modified_date = get_last_modified(path);
     char *type = get_type(path);
-    if (code == 200 && strcmp(modified_date, "\r\n")) {
+    if (code == 200 && strcmp(modified_date, "")) {
         code = 500;
     }
-    if (code == 200 && strcmp(type, "\r\n")) {
+    if (code == 200 && strcmp(type, "")) {
         code = 500;
     }
 
