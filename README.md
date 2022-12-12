@@ -24,7 +24,7 @@ When a connection is made, sws will respond with the appropriate HTTP/1.0 status
 Date            The current timestamp in GMT.
 Server          A string identifying this server and version.
 Last-Modified   The timestamp in GMT of the file’s last modification date.
-Content-Type    text/html or, optionally, the correct content-type for the file in question as deter- mined via magic(5) patterns.
+Content-Type    text/html or, optionally, the correct content-type for the file in question as determined via magic(5) patterns.
 Content-Length  The size in bytes of the data returned.
 ```
 
@@ -40,13 +40,13 @@ As a group we made several decisions throughout the process of writing and testi
 
 - **CGIs**: Execution of CGIs as described in CGIs.
 - **Directory Indexing**: If the request was for a directory and the directory does not contain a file named "index.html", then sws will generate a directory index, listing the con- tents of the directory in alphanumeric order. Files starting with a "." are ignored
-- **User Directories**: If the request begins with a "\ ̃", then the following string up to the first slash is translated into that user’s sws directory (ie /home/<user>/sws/)
+- **User Directories**: If the request begins with a " ̃", then the following string up to the first slash is translated into that user’s sws directory (ie /home/<user>/sws/)
 
 ## CGIs
 If a URI begins with the string "/cgi-bin", and the −c flag was specified, then the remainder of the resource path will be resolved relative to the directory specified using this flag. The resulting file will then be executed and any output generated is returned instead. Execution of CGIs follows the specification in RFC3875.
     
 ## LOGGING
-Per default, sws does not do any logging. If explicitly enabled via the −l flag, sws will log every request in a slight variation of Apache’s so-called "common" format: ’%a %t "%r" %>s %b’. That is, it will log:
+Per default, sws does not do any logging. If explicitly enabled via the −l flag, sws will log every request in a slight variation of Apache’s so-called "common" format: ’%a %t "%r" %s %b’. That is, it will log:
 - %a  The remote IP address.
 - %t  The time the request was received (in GMT).
 - %r  The (quoted) first line of the request.
