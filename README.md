@@ -32,7 +32,7 @@ If the request type was a GET, then it will subsequently return the data of the 
 
 ## DECISIONS
 As a group we made several decisions throughout the process of writing and testing this simple web server. This section will describe each of those crucial decisions. 
-- **Timeout**: The decision was made to not include a timeout in sws. The reason being that since this is a simple version of an HTTP web server we anticipate no malicious actions being taken by clients. This means we have decided that all client connections are intentional and should result in a meaningful request and response.
+- **Timeout Once Client is Connected**: The decision was made to not include a timeout in sws. The reason being that since this is a simple version of an HTTP web server we anticipate no malicious actions being taken by clients. This means we have decided that all client connections are intentional and should result in a meaningful request and response.
 - **Logging Failure**: In the case where logging fails while allocating memory or writing, the server does not exit(1) or fail in any other way other than not writing to the file. The reason for this is that logging is an internal server action and should have no impact on the response sent to the client.
 
 ## COLLABORATION
