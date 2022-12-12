@@ -40,7 +40,7 @@ As a group we made several decisions throughout the process of writing and testi
 
 - **CGIs**: Execution of CGIs as described in CGIs.
 - **Directory Indexing**: If the request was for a directory and the directory does not contain a file named "index.html", then sws will generate a directory index, listing the con- tents of the directory in alphanumeric order. Files starting with a "." are ignored
-- **User Directories**: If the request begins with a " ̃", then the following string up to the first slash is translated into that user’s sws directory (ie /home/<user>/sws/)
+- **User Directories**: If the request begins with a "\ ̃", then the following string up to the first slash is translated into that user’s sws directory (ie /home/<user>/sws/)
 
 ## CGIs
 If a URI begins with the string "/cgi-bin", and the −c flag was specified, then the remainder of the resource path will be resolved relative to the directory specified using this flag. The resulting file will then be executed and any output generated is returned instead. Execution of CGIs follows the specification in RFC3875.
@@ -50,7 +50,7 @@ Per default, sws does not do any logging. If explicitly enabled via the −l fla
 - %a  The remote IP address.
 - %t  The time the request was received (in GMT).
 - %r  The (quoted) first line of the request.
-- %>s The status of the request.
+- %s The status of the request.
 - %b  Size of the response in bytes. Ie, "Content-Length".
     
 Example log lines might look like so:
