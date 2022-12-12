@@ -1,12 +1,12 @@
 #include "writer.h"
 
-void writer(reader_response r_response, int client_fd){
+void 
+writer(reader_response r_response, int client_fd) {
     if (d_FLAG) {
         (void)printf("reader returned(): %s\n", r_response.response);    
     }
     
     struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
-    // Response for Head request
     int head = strncmp(r_response.firstLine, "HEAD", 4);
     if(head == 0){
         free(r.body);
@@ -45,19 +45,18 @@ logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int s
         if (d_FLAG) {
             (void)printf("malloc: %s\n", strerror(errno));
         }
-        exit(1);
+        return;
     } 
     sprintf(logging_buffer, "%s %s %s %d %d\n", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
     if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
         if (d_FLAG) {
             (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
-        exit(1);
     }
 }
 
-void send_response(int client_fd, void *response, size_t length)
-{
+void 
+send_response(int client_fd, void *response, size_t length) {
     char *buf = (char*) response;
     while (length > 0)
     {
@@ -69,7 +68,7 @@ void send_response(int client_fd, void *response, size_t length)
 }
 
 char* 
-r_body(char* path, bool cgi){
+r_body(char* path, bool cgi) {
     struct stat path_stat;
     stat(path, &path_stat);
     if (S_ISDIR(path_stat.st_mode)) {
@@ -84,7 +83,7 @@ r_body(char* path, bool cgi){
 }
 
 char*
-index_html(char* path){
+index_html(char* path) {
     struct stat path_stat;
     stat(path, &path_stat);
     if (S_ISDIR(path_stat.st_mode)) {
@@ -108,7 +107,7 @@ index_html(char* path){
 }
 
 char* 
-file_content(char* path){
+file_content(char* path) {
     FILE* fp = fopen(path, "r");
     char buf[BUFSIZ];
     int size = 0;
@@ -158,14 +157,14 @@ dir_content(char* path) {
 	(void)closedir(dp);
 	return r;
 }
-char* cgi_content(char* filepath){
+
+char* cgi_content(char* filepath) {
 
     FILE *fp;
     char buf[BUFSIZ];
     char *path = "/bin/sh";
     char *filename = filepath;
     asprintf(&path, "%s %s", path, filename);
-    /* Open the command for reading. */
     fp = popen(path, "r");
     if (fp == NULL) {
         if (d_FLAG) {
@@ -176,12 +175,10 @@ char* cgi_content(char* filepath){
 
     int size = 0;
 	char* str = "";
-    /* Read the output a line at a time - output it. */
     while (fgets(buf, BUFSIZ, fp) != NULL) {
         size += asprintf(&str, "%s%s\n", str, buf);
     }
 
-    /* close */
     (void)pclose(fp);
 
     char *r;
@@ -196,7 +193,7 @@ char* cgi_content(char* filepath){
 }
 
 struct response
-response_content(int code, char* path, bool cgi){
+response_content(int code, char* path, bool cgi) {
     char body[BUFSIZ];
     char *content_length = "Content-Length:";
     char *content_type = "Content-Type:";
@@ -213,7 +210,7 @@ response_content(int code, char* path, bool cgi){
     struct response r = {
         "HTTP/1.0",
         "","",                  // 200, OK
-        date,                     // date
+        date,                   // date
         "Server: sws\r\n",          
         "",                     // Last-Modified
         "",                     // Content-Type
@@ -323,8 +320,7 @@ response_content(int code, char* path, bool cgi){
 }
 
 char*
-get_last_modified(char *path)
-{
+get_last_modified(char *path) {
     struct stat sb;
     char *s, *t;
 

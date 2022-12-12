@@ -16,10 +16,7 @@
 
 #include "sws.h"
 
-int
-allocate_fd(struct addrinfo *p);
-
-int
-socket_select();
+int allocate_fd(struct addrinfo *p);
+int socket_select();
 
 #endif
