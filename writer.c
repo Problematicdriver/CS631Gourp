@@ -6,6 +6,14 @@ void writer(reader_response r_response, int client_fd){
     }
     
     struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
+    // Response for Head request
+    int head = strncmp(r_response.firstLine, "HEAD", 4);
+    if(head == 0){
+        free(r.content_length);
+        free(r.body);
+        r.content_length = "Content-Length: 0";
+        r.body = "";
+    }
     char* result;
     int size = asprintf(&result, "%s %s %s\r\n%s%s%s%s%s\r\n\r\n%s",
         r.http_version, 
@@ -17,6 +25,7 @@ void writer(reader_response r_response, int client_fd){
         r.content_type,
         r.content_length,
         r.body);
+	
     char response[size + 1];
     strlcpy(response, result, size+1);
     if (d_FLAG) {
