@@ -58,7 +58,7 @@ handle_socket(int server_fd) {
                 (void)printf("Error fork(): %s\n", strerror(errno));    
             }
         }
-        close(client_fd);
+        (void)close(client_fd);
     }
 }
 
@@ -377,11 +377,9 @@ checkPath(char* path) {
 reader_response
 reader(int fd) {
     bool done;
-    char endChar = 127;
     char* buf;    
     char* line;
     char* lines[NUMLINES] = {NULL};
-    char msgEnd[2];
     char* method;
     char* part;
     char* path;
@@ -395,9 +393,6 @@ reader(int fd) {
     ssize_t bytes;
 
     r_response.cgi = isCgi;
-
-    msgEnd[0] = endChar;
-    msgEnd[1] = '\0';
 
     if ((buf = (char *)malloc(sizeof(char)*(BUFSIZE))) == NULL) {
         if (d_FLAG) {
@@ -462,7 +457,7 @@ reader(int fd) {
         line = lines[n];
         if (d_FLAG) {
             (void)printf("[%d]%s\n",n+1, line);
-            printf("%ld\n", strlen(line));
+            (void)printf("%ld\n", strlen(line));
         }
         if (n == 0) {
             r_response.firstLine = strdup(line);
@@ -474,33 +469,54 @@ reader(int fd) {
             while (part != NULL) {
                 if (index == 0) {
                     if ((method = strndup(part, 5)) == NULL) {
-                        (void)printf("strdup: %s\n", strerror(errno));
+                        if (d_FLAG) {
+                            (void)printf("strdup: %s\n", strerror(errno));
+                        }
                         free(line);
+                        r_response.statusCode = 500;
+                        r_response.mtime = mtime;
+                        r_response.path = "";
+                        r_response.response = "Internal Server Error";
+                        return r_response;
                     }
                 } else if (index == 1) {
                     if ((path = strdup(part)) == NULL) {
+                        if (d_FLAG) {
+                            (void)printf("strdup: %s\n", strerror(errno));    
+                        }
                         free(line);
                         free(method);
-                        (void)printf("strdup: %s\n", strerror(errno));
+                        r_response.statusCode = 500;
+                        r_response.mtime = mtime;
+                        r_response.path = "";
+                        r_response.response = "Internal Server Error";
+                        return r_response;
                     }
                 } else if (index == 2) {
                     if ((protocol = strdup(part)) == NULL) {
+                        if (d_FLAG) {
+                            (void)printf("strdup: %s\n", strerror(errno));    
+                        }
                         free(line);
                         free(method);
                         free(path);
-                        (void)printf("strdup: %s\n", strerror(errno));
+                        r_response.statusCode = 500;
+                        r_response.mtime = mtime;
+                        r_response.path = "";
+                        r_response.response = "Internal Server Error";
+                        return r_response;
                     }
                 }
                 index++;
                 if (d_FLAG) {
-                    printf("\t[%d]%s\n", index, part);
+                    (void)printf("\t[%d]%s\n", index, part);
                 }
                 part = strtok(NULL, " ");
             }
 
             /* 
              * First line send by the client should be exactly 3 seperate parts.
-             * These parts should be in the format "METHOD path protocol"
+             * These parts should be in the format "METHOD path Protocol"
              */
             if (index != 3) {
                 free(line);
@@ -583,7 +599,6 @@ reader(int fd) {
             }
         } else {
             /* (Header) Anything other than the first line. */
-            if (strncmp(line, msgEnd, 1) != 0) {
                 headerVal = getHeaderContent(line);
                 if (headerVal != 0) {
                     if (headerVal == 400) {
@@ -604,9 +619,6 @@ reader(int fd) {
                     }
                     return r_response;
                 }
-            } else {
-                printf("Ignored header\n");
-            }
         }
         n++;
     }

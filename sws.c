@@ -176,8 +176,7 @@ main(int argc, char** argv) {
 
     int value;
     if ((value = socket_select()) != 0) {
-        fflush(stderr);
-        (void)fprintf(stderr, "create_socket()\n");
+        (void)fprintf(stderr, "Error: create_socket()\n");
         return EXIT_FAILURE;
     }
     

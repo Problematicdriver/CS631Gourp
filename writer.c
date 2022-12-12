@@ -33,7 +33,7 @@ void writer(reader_response r_response, int client_fd){
     if(l_FLAG && !d_FLAG) {
         logging(r_response.remoteIp, r_response.requestTime, r_response.firstLine, r_response.statusCode, size);
     }
-    close(client_fd);
+    (void)close(client_fd);
 }
 
 void
@@ -135,9 +135,10 @@ dir_content(char* path) {
 	struct dirent *dirp;
 
 	if ((dp = opendir(path)) == NULL) {
-		fprintf(stderr, "Unable to open '%s': %s\n",
-					path, strerror(errno));
-		exit(EXIT_FAILURE);
+        if (d_FLAG) {
+            (void)printf("Unable to open '%s': %s\n", path, strerror(errno));
+        }
+		return NULL;
 	}
 	int size = 0;
 	char* str = "";
@@ -145,7 +146,6 @@ dir_content(char* path) {
 		if (strncmp(dirp->d_name, ".", strlen(".") != 0)) 
             size += asprintf(&str, "%s%s\n", str,strdup(dirp->d_name));
 	}
-	printf("Size: %d\n", size);
 	
     char *r;
     if ((r = malloc(sizeof(char) * size)) == NULL) {
@@ -168,7 +168,9 @@ char* cgi_content(char* filepath){
     /* Open the command for reading. */
     fp = popen(path, "r");
     if (fp == NULL) {
-        printf("Failed to run command\n" );
+        if (d_FLAG) {
+            (void)printf("Failed to run command\n" );    
+        }
         return NULL;
     }
 
@@ -180,7 +182,7 @@ char* cgi_content(char* filepath){
     }
 
     /* close */
-    pclose(fp);
+    (void)pclose(fp);
 
     char *r;
     if ((r = malloc(sizeof(char) * size)) == NULL) {
@@ -327,11 +329,15 @@ get_last_modified(char *path)
     char *s, *t;
 
     if (lstat(path, &sb) < 0) {
-        fprintf(stderr, "lstat() %s\n", strerror(errno));
+        if (d_FLAG) {
+            (void)printf("lstat() %s\n", strerror(errno));    
+        }
         return NULL;
     }
     if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
-        fprintf(stderr, "asctime() %s\n", strerror(errno));
+        if (d_FLAG) {
+            (void)printf("asctime() %s\n", strerror(errno));    
+        }
         return NULL;
     }
     int len = strlen(s);
@@ -345,11 +351,15 @@ get_time() {
     time_t now;
     char *s, *t;
     if ((now = time(0)) == (time_t)-1) {
-        fprintf(stderr, "time() %s\n",  strerror(errno));
+        if (d_FLAG) {
+            (void)printf("time() %s\n",  strerror(errno));    
+        }
         return NULL;
     }
     if ((s = (asctime(gmtime(&now)))) == NULL) {
-        fprintf(stderr, "asctime() %s\n", strerror(errno));
+        if (d_FLAG) {
+            (void)printf("asctime() %s\n", strerror(errno));
+        }
         return NULL;
     }
     int len = strlen(s);
