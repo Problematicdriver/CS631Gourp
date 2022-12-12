@@ -35,7 +35,8 @@ As a group we made several decisions throughout the process of writing and testi
 - **Timeout**: The decision was made to not include a timeout in sws. The reason being that since this is a simple version of an HTTP web server we anticipate no malicious actions being taken by clients. This means we have decided that all client connections are intentional and should result in a meaningful request and response.
 - **Logging Failure**: In the case where logging fails while allocating memory or writing, the server does not exit(1) or fail in any other way other than not writing to the file. The reason for this is that logging is an internal server action and should have no impact on the response sent to the client.
 
-## COLLABORATION- **Options handling and sws.c setup**: Joe & Kavi
+## COLLABORATION
+- **Options handling and sws.c setup**: Joe & Kavi
 - **Socket creation**: Jiayi
 - **Obtaining client request**: Joe
 - **URL decoding, parsing and resolving home directory and cgi-bin**: Joe & Kavi
@@ -46,6 +47,7 @@ As a group we made several decisions throughout the process of writing and testi
 - **Generating response headers using libmagic(3)**:  Yu
 - **Writing to client**: Jiayi & Yu
 - **Obtaining date and type information for response**: Jiayi & Yu
+- **Writing makefile and handling reader response as struct** : Joe & Kavi
 - **Error checking and handling**: Joe
 - **Uniformity of code style**: Joe
 
