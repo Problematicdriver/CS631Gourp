@@ -24,7 +24,7 @@ When a connection is made, sws will respond with the appropriate HTTP/1.0 status
 Date            The current timestamp in GMT.
 Server          A string identifying this server and version.
 Last-Modified   The timestamp in GMT of the file’s last modification date.
-Content-Type    text/html or, optionally, the correct content-type for the file in question as determined via magic(5) patterns.
+Content-Type    text/html or, optionally, the correct content-type for the file in question as deter- mined via magic(5) patterns.
 Content-Length  The size in bytes of the data returned.
 ```
 
@@ -34,6 +34,20 @@ If the request type was a GET, then it will subsequently return the data of the 
 As a group we made several decisions throughout the process of writing and testing this simple web server. This section will describe each of those crucial decisions. 
 - **Timeout**: The decision was made to not include a timeout in sws. The reason being that since this is a simple version of an HTTP web server we anticipate no malicious actions being taken by clients. This means we have decided that all client connections are intentional and should result in a meaningful request and response.
 - **Logging Failure**: In the case where logging fails while allocating memory or writing, the server does not exit(1) or fail in any other way other than not writing to the file. The reason for this is that logging is an internal server action and should have no impact on the response sent to the client.
+
+## COLLABORATION- **Options handling and sws.c setup**: Joe & Kavi
+- **Socket creation**: Jiayi
+- **Obtaining client request**: Joe
+- **URL decoding, parsing and resolving home directory and cgi-bin**: Joe & Kavi
+- **Header parsing**: Jiayi & Joe
+- **Handling logging**: Kavi
+- **Handle socket connection**: Yu
+- **Generating response body**: Yu
+- **Generating response headers using libmagic(3)**:  Yu
+- **Writing to client**: Jiayi & Yu
+- **Obtaining date and type information for response**: Jiayi & Yu
+- **Error checking and handling**: Joe
+- **Uniformity of code style**: Joe
 
 ## FEATURES
 **sws** supports a number of interesting features:
@@ -46,11 +60,11 @@ As a group we made several decisions throughout the process of writing and testi
 If a URI begins with the string "/cgi-bin", and the −c flag was specified, then the remainder of the resource path will be resolved relative to the directory specified using this flag. The resulting file will then be executed and any output generated is returned instead. Execution of CGIs follows the specification in RFC3875.
     
 ## LOGGING
-Per default, sws does not do any logging. If explicitly enabled via the −l flag, sws will log every request in a slight variation of Apache’s so-called "common" format: ’%a %t "%r" %s %b’. That is, it will log:
+Per default, sws does not do any logging. If explicitly enabled via the −l flag, sws will log every request in a slight variation of Apache’s so-called "common" format: ’%a %t "%r" %>s %b’. That is, it will log:
 - %a  The remote IP address.
 - %t  The time the request was received (in GMT).
 - %r  The (quoted) first line of the request.
-- %s The status of the request.
+- %>s The status of the request.
 - %b  Size of the response in bytes. Ie, "Content-Length".
     
 Example log lines might look like so:
