@@ -184,11 +184,12 @@ response_content(int code, char* path, bool cgi){
         ""                      // Body
         };
     
-    char *modified_date, *type;
-    if (code == 200 && (modified_date = get_last_modified(path)) == NULL) {
+    char *modified_date = get_last_modified(path);
+    char *type = get_type(path);
+    if (code == 200 && strcmp(modified_date, "\r\n")) {
         code = 500;
     }
-    if (code == 200 && (type = get_type(path)) == NULL) {
+    if (code == 200 && strcmp(type, "\r\n")) {
         code = 500;
     }
 
@@ -291,9 +292,11 @@ get_last_modified(char *path)
 
     if (lstat(path, &sb) < 0) {
         fprintf(stderr, "lstat() %s\n", strerror(errno));
+        return "";
     }
     if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
+        return "";
     }
     int len = strlen(s);
     s[len - 1] = '\0';
@@ -307,6 +310,7 @@ get_time() {
     char *s, *t;
     if ((now = time(0)) == (time_t)-1) {
         fprintf(stderr, "time() %s\n",  strerror(errno));
+        return "Not Available";
     }
     if ((s = (asctime(gmtime(&now)))) == NULL) {
         fprintf(stderr, "asctime() %s\n", strerror(errno));
@@ -327,16 +331,19 @@ get_type(char *path) {
         if (d_FLAG) {
             (void)printf("magic_open() %s\n", strerror(errno));    
         }
+        return "";
     } 
     if (magic_load(magic, NULL) < 0) {
         if (d_FLAG) {
             (void)printf("magic_load() %s\n", strerror(errno));
         }
+        return "";
     }
     if ((mime = magic_file(magic, path)) == NULL) {
         if (d_FLAG) {
             (void)printf("magic_file() %s\n", strerror(errno));
         }
+        return "";
     }
     magic_close(magic);
     asprintf(&type, "%s\r\n", mime);
