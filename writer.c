@@ -1,58 +1,141 @@
 #include "writer.h"
 
-void 
-writer(reader_response r_response, int client_fd) {
-    if (d_FLAG) {
-        (void)printf("reader returned(): %s\n", r_response.response);    
+char*
+get_last_modified(char *path) {
+    struct stat sb;
+    char *s, *t;
+
+    if (lstat(path, &sb) < 0) {
+        if (d_FLAG) {
+            (void)printf("lstat() %s\n", strerror(errno));    
+        }
+        return NULL;
     }
-    
-    struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
-    int head = strncmp(r_response.firstLine, "HEAD", 4);
-    if(head == 0){
-        free(r.body);
-        r.body = "";
+    if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
+        if (d_FLAG) {
+            (void)printf("asctime() %s\n", strerror(errno));    
+        }
+        return NULL;
     }
-    char* result;
-    int size = asprintf(&result, "%s %s %s\r\n%s%s%s%s%s\r\n\r\n%s",
-        r.http_version, 
-        r.status_code,
-        r.status_message,
-        r.date,
-        r.last_modified,
-        r.server,
-        r.content_type,
-        r.content_length,
-        r.body);
-	
-    char response[size + 1];
-    strlcpy(response, result, size+1);
-    if (d_FLAG) {
-        (void)printf("Response:\n%s\n", response);    
-    }
-    send_response(client_fd, response, size+1);
-    if(l_FLAG && !d_FLAG) {
-        logging(r_response.remoteIp, r_response.requestTime, r_response.firstLine, r_response.statusCode, size);
-    }
-    (void)close(client_fd);
+    int len = strlen(s);
+    s[len - 1] = '\0';
+    asprintf(&t, "%s\r\n", s);
+    return t;
 }
 
-void
-logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status, int responseSize) {
-    char* logging_buffer;
-    int n;
+char*
+get_time() {
+    time_t now;
+    char *s, *t;
+    if ((now = time(0)) == (time_t)-1) {
+        if (d_FLAG) {
+            (void)printf("time() %s\n",  strerror(errno));    
+        }
+        return NULL;
+    }
+    if ((s = (asctime(gmtime(&now)))) == NULL) {
+        if (d_FLAG) {
+            (void)printf("asctime() %s\n", strerror(errno));
+        }
+        return NULL;
+    }
+    int len = strlen(s);
+    s[len-1] = '\0';
+    asprintf(&t, "%s\r\n", s);
+    return t;
+}
 
-    if ((logging_buffer = (char *)malloc(sizeof(char)*BUFSIZ)) == NULL) {
+char*
+get_type(char *path) {
+    const char *mime;
+    char *type;
+    magic_t magic;
+    if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("magic_open() %s\n", strerror(errno));    
+        }
+        return NULL;
+    } 
+    if (magic_load(magic, NULL) < 0) {
+        if (d_FLAG) {
+            (void)printf("magic_load() %s\n", strerror(errno));
+        }
+        return NULL;
+    }
+    if ((mime = magic_file(magic, path)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("magic_file() %s\n", strerror(errno));
+        }
+        return NULL;
+    }
+    magic_close(magic);
+    asprintf(&type, "%s\r\n", mime);
+    return type;
+}
+
+char*
+dir_content(char* path) {
+
+	DIR *dp;
+	struct dirent *dirp;
+
+	if ((dp = opendir(path)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("Unable to open '%s': %s\n", path, strerror(errno));
+        }
+		return NULL;
+	}
+	int size = 0;
+	char* str = "";
+	while ((dirp = readdir(dp)) != NULL) {
+		if (strncmp(dirp->d_name, ".", strlen(".") != 0)) 
+            size += asprintf(&str, "%s%s\n", str,strdup(dirp->d_name));
+	}
+	
+    char *r;
+    if ((r = malloc(sizeof(char) * size)) == NULL) {
         if (d_FLAG) {
             (void)printf("malloc: %s\n", strerror(errno));
         }
-        return;
-    } 
-    sprintf(logging_buffer, "%s %s %s %d %d\n", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
-    if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
-        if (d_FLAG) {
-            (void)printf("Error while logging into file: %s\n", strerror(errno));
-        }
+        return NULL;
     }
+    strlcpy(r, str, size);
+	(void)closedir(dp);
+	return r;
+}
+
+char* cgi_content(char* filepath) {
+
+    FILE *fp;
+    char buf[BUFSIZ];
+    char *path = "/bin/sh";
+    char *filename = filepath;
+    asprintf(&path, "%s %s", path, filename);
+    fp = popen(path, "r");
+    if (fp == NULL) {
+        if (d_FLAG) {
+            (void)printf("Failed to run command\n" );    
+        }
+        return NULL;
+    }
+
+    int size = 0;
+	char* str = "";
+    while (fgets(buf, BUFSIZ, fp) != NULL) {
+        size += asprintf(&str, "%s%s\n", str, buf);
+    }
+
+    (void)pclose(fp);
+
+    char *r;
+    if ((r = malloc(sizeof(char) * size)) == NULL) {
+        if (d_FLAG) {
+            (void)printf("malloc: %s\n", strerror(errno));
+        }
+        return NULL;
+    }
+    strlcpy(r, str, size);
+    return r;
 }
 
 void 
@@ -117,71 +200,6 @@ file_content(char* path) {
         size += asprintf(&str, "%s%s", str, buf);
     }
 
-    if ((r = malloc(sizeof(char) * size)) == NULL) {
-        if (d_FLAG) {
-            (void)printf("malloc: %s\n", strerror(errno));
-        }
-        return NULL;
-    }
-    strlcpy(r, str, size);
-    return r;
-}
-
-char*
-dir_content(char* path) {
-
-	DIR *dp;
-	struct dirent *dirp;
-
-	if ((dp = opendir(path)) == NULL) {
-        if (d_FLAG) {
-            (void)printf("Unable to open '%s': %s\n", path, strerror(errno));
-        }
-		return NULL;
-	}
-	int size = 0;
-	char* str = "";
-	while ((dirp = readdir(dp)) != NULL) {
-		if (strncmp(dirp->d_name, ".", strlen(".") != 0)) 
-            size += asprintf(&str, "%s%s\n", str,strdup(dirp->d_name));
-	}
-	
-    char *r;
-    if ((r = malloc(sizeof(char) * size)) == NULL) {
-        if (d_FLAG) {
-            (void)printf("malloc: %s\n", strerror(errno));
-        }
-        return NULL;
-    }
-    strlcpy(r, str, size);
-	(void)closedir(dp);
-	return r;
-}
-
-char* cgi_content(char* filepath) {
-
-    FILE *fp;
-    char buf[BUFSIZ];
-    char *path = "/bin/sh";
-    char *filename = filepath;
-    asprintf(&path, "%s %s", path, filename);
-    fp = popen(path, "r");
-    if (fp == NULL) {
-        if (d_FLAG) {
-            (void)printf("Failed to run command\n" );    
-        }
-        return NULL;
-    }
-
-    int size = 0;
-	char* str = "";
-    while (fgets(buf, BUFSIZ, fp) != NULL) {
-        size += asprintf(&str, "%s%s\n", str, buf);
-    }
-
-    (void)pclose(fp);
-
-    char *r;
     if ((r = malloc(sizeof(char) * size)) == NULL) {
         if (d_FLAG) {
             (void)printf("malloc: %s\n", strerror(errno));
@@ -319,75 +337,57 @@ response_content(int code, char* path, bool cgi) {
     return r;
 }
 
-char*
-get_last_modified(char *path) {
-    struct stat sb;
-    char *s, *t;
+void
+logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status, int responseSize) {
+    char* logging_buffer;
+    int n;
 
-    if (lstat(path, &sb) < 0) {
+    if ((logging_buffer = (char *)malloc(sizeof(char)*BUFSIZ)) == NULL) {
         if (d_FLAG) {
-            (void)printf("lstat() %s\n", strerror(errno));    
+            (void)printf("malloc: %s\n", strerror(errno));
         }
-        return NULL;
-    }
-    if ((s = (asctime(gmtime(&(sb.st_mtime))))) == NULL) {
-        if (d_FLAG) {
-            (void)printf("asctime() %s\n", strerror(errno));    
-        }
-        return NULL;
-    }
-    int len = strlen(s);
-    s[len - 1] = '\0';
-    asprintf(&t, "%s\r\n", s);
-    return t;
-}
-
-char*
-get_time() {
-    time_t now;
-    char *s, *t;
-    if ((now = time(0)) == (time_t)-1) {
-        if (d_FLAG) {
-            (void)printf("time() %s\n",  strerror(errno));    
-        }
-        return NULL;
-    }
-    if ((s = (asctime(gmtime(&now)))) == NULL) {
-        if (d_FLAG) {
-            (void)printf("asctime() %s\n", strerror(errno));
-        }
-        return NULL;
-    }
-    int len = strlen(s);
-    s[len-1] = '\0';
-    asprintf(&t, "%s\r\n", s);
-    return t;
-}
-
-char*
-get_type(char *path) {
-    const char *mime;
-    char *type;
-    magic_t magic;
-    if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
-        if (d_FLAG) {
-            (void)printf("magic_open() %s\n", strerror(errno));    
-        }
-        return NULL;
+        return;
     } 
-    if (magic_load(magic, NULL) < 0) {
+    sprintf(logging_buffer, "%s %s %s %d %d\n", remoteAddress, reqestedTime, firstLineOfRequest, status, responseSize);
+    if((n = write(logFD, logging_buffer, strlen(logging_buffer))) == -1){
         if (d_FLAG) {
-            (void)printf("magic_load() %s\n", strerror(errno));
+            (void)printf("Error while logging into file: %s\n", strerror(errno));
         }
-        return NULL;
     }
-    if ((mime = magic_file(magic, path)) == NULL) {
-        if (d_FLAG) {
-            (void)printf("magic_file() %s\n", strerror(errno));
-        }
-        return NULL;
+}
+
+void 
+writer(reader_response r_response, int client_fd) {
+    if (d_FLAG) {
+        (void)printf("reader returned(): %s\n", r_response.response);    
     }
-    magic_close(magic);
-    asprintf(&type, "%s\r\n", mime);
-    return type;
+    
+    struct response r = response_content(r_response.statusCode, r_response.path, r_response.cgi);
+    int head = strncmp(r_response.firstLine, "HEAD", 4);
+    if(head == 0){
+        free(r.body);
+        r.body = "";
+    }
+    char* result;
+    int size = asprintf(&result, "%s %s %s\r\n%s%s%s%s%s\r\n\r\n%s",
+        r.http_version, 
+        r.status_code,
+        r.status_message,
+        r.date,
+        r.last_modified,
+        r.server,
+        r.content_type,
+        r.content_length,
+        r.body);
+	
+    char response[size + 1];
+    strlcpy(response, result, size+1);
+    if (d_FLAG) {
+        (void)printf("Response:\n%s\n", response);    
+    }
+    send_response(client_fd, response, size+1);
+    if(l_FLAG && !d_FLAG) {
+        logging(r_response.remoteIp, r_response.requestTime, r_response.firstLine, r_response.statusCode, size);
+    }
+    (void)close(client_fd);
 }

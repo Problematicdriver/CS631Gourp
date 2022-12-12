@@ -17,7 +17,7 @@ char *hostname;
 char *port;
 char *real_cgidir;
 char *real_docroot;
-
+char *logFile;
 int logFD;
 
 int

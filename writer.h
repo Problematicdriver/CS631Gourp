@@ -28,11 +28,12 @@ typedef struct reader_response {
     time_t mtime;
     char* requestTime;
     char* remoteIp;
+    bool cgi;
 } reader_response;
 
 void writer(reader_response r_response, int client_fd);
 void send_response(int client_fd, void *response, size_t length);
-char* r_body(char* path);
+char* r_body(char* path, bool cgi);
 char* file_content(char* path);
 char* dir_content(char* path);
 void logging(char* remoteAddress, char* reqestedTime, char* firstLineOfRequest, int status, int responseSize);
