@@ -50,6 +50,7 @@ As a group we made several decisions throughout the process of writing and testi
 - **Writing makefile and handling reader response as struct** : Joe & Kavi
 - **Error checking and handling**: Joe
 - **Uniformity of code style**: Joe
+- **Handled proper response codes**: All
 
 ## FEATURES
 **sws** supports a number of interesting features:
