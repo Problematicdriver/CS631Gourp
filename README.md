@@ -75,7 +75,7 @@ Example log lines might look like so:
 155.246.89.8 2019-10-28T12:12:12Z "GET / HTTP/1.0" 200 1406
 2001::fe72:3900 2019-10-28T12:12:12Z "GET /file HTTP/1.0" 404 312
 ```
-All lines will be appended to the given file unless −d was given, in which case all lines will be printed to std- out.
+All lines will be appended to the given file unless −d was given, in which case all lines will be printed to stdout.
 
 ## EXAMPLE INVOCATIONS
 ```
